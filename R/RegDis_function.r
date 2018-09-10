@@ -268,6 +268,8 @@ Statistic", "Absolute value of difference in average outcomes",
 sharp_neyman <- function(Y, Z, cin) {
     
     # Y=yg;Z=zg
+    Y = as.numeric(Y)
+    Z = as.numeric(Z)
     
     m1 <- mean(Y[Z == 1])
     m0 <- mean(Y[Z == 0])
