@@ -1,0 +1,2 @@
+# LRErdd
+Regression discontinuity
