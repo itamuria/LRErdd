@@ -100,11 +100,11 @@ rd_filtering <- function(dataset = last, covariate = "AGE", num_out = 4, CT = "W
 #'
 fisher_exact_value <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", niter = 100) {
     M <- niter
-    Y <- dataset[, Y_name]
+    Y <- as.numeric(dataset[, Y_name])
     Z <- dataset[, forcing_bin_var_name]
     
-    m1 <- mean(dataset[, Y_name][dataset[, forcing_bin_var_name] == 1])
-    m0 <- mean(dataset[, Y_name][dataset[, forcing_bin_var_name] == 0])
+    m1 <- mean(Y[dataset[, forcing_bin_var_name] == 1])
+    m0 <- mean(Y[dataset[, forcing_bin_var_name] == 0])
     tave <- m1 - m0
     tobs <- abs(tave)
     Nh <- length(Y)
