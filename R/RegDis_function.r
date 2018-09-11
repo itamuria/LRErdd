@@ -496,7 +496,7 @@ fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
 }  # function end
 
 
-#' Fuzzy - FEP
+#' Fuzzy - FEP binary one side
 #'
 #' @param dataset The dataset with the variables
 #' @param forcing_bin_var_name forcing_bin_var_name
@@ -510,7 +510,7 @@ fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_fep <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
+fuzzy_fep1sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
     Y <- Yg
     Z <- Zg
     W <- Wg
@@ -567,7 +567,7 @@ fuzzy_fep <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
     return(list(pppv, Tsim, Tobs))
 }
 
-#' Fuzzy - FEP
+#' Fuzzy - FEP binary two sided
 #'
 #' @param dataset The dataset with the variables
 #' @param forcing_bin_var_name forcing_bin_var_name
@@ -581,14 +581,88 @@ fuzzy_fep <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_fep_numeric <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
+fuzzy_fep2sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
+  Y <- Yg
+  Z <- Zg
+  W <- Wg
+  
+  Nh <- nrow(dataset)
+  ## IV-ESTIMATOR
+  ITT.Y <- mean(Y[Z == 1]) - mean(Y[Z == 0])
+  ITT.W <- mean(W[Z == 1]) - mean(W[Z == 0])
+  CACE.IV.obs <- ITT.Y/ITT.W
+  CACE.IV.obs
+  
+  ## MLE
+  names(dataset)[which(names(dataset) == Y_name)] <- "Y"
+  CACE.MLE.obs <- EM.bin2(dat = dataset)
+  
+  # Posterior Mean
+  CACE.PM.obs <- mcmc.bin2(n.iter = 1000, n.burn = 500, dat = dataset)
+  
+  Tobs <- c(CACE.IV.obs, CACE.MLE.obs, CACE.PM.obs)
+  M <- as.numeric(as.character(M2))
+  nit <- 2 * M
+  nburn <- nit - M
+  
+  ## Impute missing compliance statuses
+  G <- mcmc.bin.h02(n.iter = nit, n.burn = nburn, dat = dataset)$Gstatus
+  
+  ## Impute missing potential outcomes under the null
+  Y1 <- Y0 <- Y
+  Tsim <- matrix(0, M, 3)
+  colnames(Tsim) <- c("CACE.IV", "CACE.MLE", "CACE.PM")
+  
+  for(i in 1:M){  
+    
+    ##Draw a random hypothetical assignment
+    Zh.sim <- sample(dath$Z, Nh, replace=TRUE)
+    
+    Wh.sim <- 0*{(1-Zh.sim)*(G[i,]==1 | G[i,]==3) + Zh.sim*(G[i,]==1)} + 
+      1*{(1-Zh.sim)*(G[i,]==2) +  Zh.sim*(G[i,]==2 | G[i,]==3)}
+    ##Re-observe the data
+    dath.sim<- data.frame(Z=Zh.sim, W=Wh.sim, Y=Y0*(1-Zh.sim)+Y1*Zh.sim)
+    
+    ##Calculate the test statistic on these data
+    ITT.Y <- mean(dath.sim$Y[dath.sim$Z==1]) - mean(dath.sim$Y[dath.sim$Z==0])
+    ITT.W <- mean(dath.sim$W[dath.sim$Z==1]) - mean(dath.sim$W[dath.sim$Z==0])
+    CACE.IV.sim <- ITT.Y/ITT.W
+    CACE.MLE.sim <- EM.bin2(dat=dath.sim)
+    CACE.PM.sim  <- mcmc.bin2(n.iter=1000, n.burn=500, dat=dath.sim)
+    
+    Tsim[i,] <- c(CACE.IV.sim, CACE.MLE.sim,CACE.PM.sim)
+    
+  }##End loop over M
+  
+  ## Calculate the posterior predictive p-value
+  pppv <- apply(abs(Tsim) >= abs(Tobs), 2, mean)
+  
+  
+  return(list(pppv, Tsim, Tobs))
+}
+
+#' Fuzzy - FEP 1 sided
+#'
+#' @param dataset The dataset with the variables
+#' @param forcing_bin_var_name forcing_bin_var_name
+#' @param forcing_var_name forcing_var_name
+#' @param Y_name Y_name
+#' @param niter niter
+#' @param bandwidth bandwidth
+#' @param cut_value cut_value
+#' @param W selected
+#' @param M2 number of iterations
+#' @return data frame with variable and value and bandwidth
+#' @export
+#'
+fuzzy_fep_numeric1sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
     Y <- Yg
     Z <- Zg
     W <- Wg
     
     
     # Yh<-grants.h$hsgrade
-    set.seed <- (200)
+    # set.seed <- (200)
     G <- NULL
     G[Z == 1 & W == 1] <- 1
     G[Z == 1 & W == 0] <- 0
@@ -652,6 +726,102 @@ fuzzy_fep_numeric <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
     return(list(pppv, Tsim, Tobs))
 }
 
+#' Fuzzy - FEP 2 sided
+#'
+#' @param dataset The dataset with the variables
+#' @param forcing_bin_var_name forcing_bin_var_name
+#' @param forcing_var_name forcing_var_name
+#' @param Y_name Y_name
+#' @param niter niter
+#' @param bandwidth bandwidth
+#' @param cut_value cut_value
+#' @param W selected
+#' @param M2 number of iterations
+#' @return data frame with variable and value and bandwidth
+#' @export
+#'
+fuzzy_fep_numeric2sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
+  Y <- Yg
+  Z <- Zg
+  W <- Wg
+  
+  
+  G<-NULL
+  G[Zh==0 & Wh==1]<-2
+  G[Zh==1 & Wh==0]<-1
+  
+  
+  pnt<-sum(Zh==1 & Wh==0)/sum(Zh==1)
+  pat<-sum(Zh==0 & Wh==1)/sum(Zh==0)
+  pc<- 1-pnt-pat
+  
+  u <- rbinom(sum(Zh==0 & Wh==0), 1, pc/{pc+pnt})
+  G[(Zh==0 & Wh==0)]<- 3*(u==1) + 1*(u==0)  
+  u <- rbinom(sum(Zh==1 & Wh==1), 1, pc/{pc+pat})
+  G[(Zh==1 & Wh==1)]<- 3*(u==1) + 2*(u==0)  		
+  
+  Yh <- NULL
+  Yh[Zh==0 & G==3]<- rnorm(sum(Zh==0 & G==3), 40, 9)
+  Yh[Zh==1 & G==3]<- rnorm(sum(Zh==1 & G==3), 60, 4)
+  Yh[G==1]<- rnorm(sum(G==1), 50, 12)
+  Yh[G==2]<- rnorm(sum(G==2), 45, 8)
+  rm(G, u, pc, pat, pnt)
+  dath<- data.frame(Z=Zh, W=Wh, Y=Yh)
+  Nh<- nrow(dath)
+  
+  # Nh<- nrow(dataset) IV-ESTIMATOR
+  ITT.Y <- mean(Y[Z == 1]) - mean(Y[Z == 0])
+  ITT.W <- mean(W[Z == 1]) - mean(W[Z == 0])
+  CACE.IV.obs <- ITT.Y/ITT.W
+  CACE.IV.obs
+  
+  ## MLE
+  names(dataset)[which(names(dataset) == Y_name)] <- "Y"
+  CACE.MLE.obs <- EM.gauss2(dat = dataset)
+  
+  # Posterior Mean
+  CACE.PM.obs <- mcmc.gauss2(n.iter = 1000, n.burn = 500, dat = dataset)
+  
+  Tobs <- c(CACE.IV.obs, CACE.MLE.obs, CACE.PM.obs)
+  M <- as.numeric(as.character(M2))
+  nit <- 2 * M
+  nburn <- nit - M
+  
+  ## Impute missing compliance statuses
+  G <- mcmc.gauss.h02(n.iter = nit, n.burn = nburn, dat = dataset)$Gstatus
+  
+  ## Impute missing potential outcomes under the null
+  Y1 <- Y0 <- Y
+  Tsim <- matrix(0, M, 3)
+  colnames(Tsim) <- c("CACE.IV", "CACE.MLE", "CACE.PM")
+  
+  for(i in 1:M){  
+    ##Draw a random hypothetical assignment
+    Zh.sim <- sample(dath$Z, Nh, replace=TRUE)
+    
+    Wh.sim <- 0*{(1-Zh.sim)*(G[i,]==1 | G[i,]==3) + Zh.sim*(G[i,]==1)} + 
+      1*{(1-Zh.sim)*(G[i,]==2) +  Zh.sim*(G[i,]==2 | G[i,]==3)}
+    ##Re-observe the data
+    dath.sim<- data.frame(Z=Zh.sim, W=Wh.sim, Y=Y0*(1-Zh.sim)+Y1*Zh.sim)
+    
+    ##Calculate the test statistic on these data
+    ITT.Y <- mean(dath.sim$Y[dath.sim$Z==1]) - mean(dath.sim$Y[dath.sim$Z==0])
+    ITT.W <- mean(dath.sim$W[dath.sim$Z==1]) - mean(dath.sim$W[dath.sim$Z==0])
+    CACE.IV.sim <- ITT.Y/ITT.W
+    CACE.MLE.sim <- EM.gauss(dat=dath.sim)
+    CACE.PM.sim  <- mcmc.gauss(n.iter=1000, n.burn=500, dat=dath.sim)
+    
+    Tsim[i,] <- c(CACE.IV.sim, CACE.MLE.sim,CACE.PM.sim)
+    
+  }##End loop over M
+  
+  ## Calculate the posterior predictive p-value
+  pppv <- apply(abs(Tsim) >= abs(Tobs), 2, mean)
+  
+  
+  return(list(pppv, Tsim, Tobs))
+}
+
 #' Fuzzy - FEP bandwidth
 #'
 #' @param dataset The dataset with the variables
@@ -665,8 +835,9 @@ fuzzy_fep_numeric <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W_name = "W", bandwidth = c(500, 1000, 1500), cut_value = 15000, M2 = 5, whichunder = 1, 
-    typemod = "binary") {
+fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W_name = "W", 
+                         bandwidth = c(500, 1000, 1500), cut_value = 15000, M2 = 5, whichunder = 1, 
+                          typemod = "binary", typesided = "onesided") {
     
     dataset$W <- dataset[, W_name]
     dataset$Y <- dataset[, Y_name]
@@ -710,11 +881,27 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
         
         # if numeric or dichotomic
         if (typemod == "binary") {
-            fu <- fuzzy_fep(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
-            ft <- c(h, fu[[1]])
+                if (typesided == "onesided") 
+                  { 
+                      fu <- fuzzy_fep1sided(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
+                      ft <- c(h, fu[[1]])
+                } else if (typesided == "twosided") 
+                { 
+                      fu <- fuzzy_fep2sided(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
+                      ft <- c(h, fu[[1]])
+                }
+            
         } else if (typemod == "numeric") {
-            fu <- fuzzy_fep_numeric(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
-            ft <- c(h, fu[[1]])
+              if (typesided == "onesided") 
+              { 
+                fu <- fuzzy_fep_numeric1sided(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
+                ft <- c(h, fu[[1]])
+              } else if (typesided == "twosided") 
+              { 
+                fu <- fuzzy_fep_numeric2sided(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
+                ft <- c(h, fu[[1]])
+              }
+            
         }
         
         df2 <- rbind(df2, ft)

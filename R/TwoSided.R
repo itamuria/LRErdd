@@ -455,7 +455,7 @@ da.gauss2 <- function(theta, dat) {
 #' @return result. 
 #' @export
 
-mcmc.gauss <- function(n.iter, n.burn, dat) {
+mcmc.gauss2 <- function(n.iter, n.burn, dat) {
     
     n.draws <- n.iter - n.burn
     theta.prior <- list(a = c(1, 1, 1))
