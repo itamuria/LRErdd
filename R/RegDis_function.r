@@ -682,8 +682,12 @@ fuzzy_fep_numeric <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W = "W", bandwidth = c(500, 1000, 1500), cut_value = 15000, 
+fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W_name = "W", bandwidth = c(500, 1000, 1500), cut_value = 15000, 
     M2 = 5, whichunder = 1, typemod = "binary") {
+  
+    dataset$W <- dataset[,W_name]
+    dataset$Y <- dataset[,Y_name]
+  
     # for each bandwidth
     len_bw <- length(bandwidth)
     
@@ -694,6 +698,8 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     } else if (whichunder == 0) {
         dataset$assigVar <- ifelse(dataset[, forcing_var_name] <= cut_value, 0, 1)
     }
+    
+    dataset$Z <- dataset$assigVar 
     
     Sh <- dataset[, forcing_var_name]
     pbalioak <- c()
@@ -716,15 +722,15 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
         print(N)
         zg <- dat_bw[, "assigVar"]
         yg <- dat_bw[, Y_name]
-        wg <- dat_bw[, W]
+        wg <- dat_bw[, W_name]
         
         
         # if numeric or dichotomic
         if (typemod == "binary") {
-            fu <- fuzzy_fep(dat_bw, Y = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
+            fu <- fuzzy_fep(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
             ft <- c(h, fu[[1]])
         } else if (typemod == "numeric") {
-            fu <- fuzzy_fep_numeric(dat_bw, Y = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
+            fu <- fuzzy_fep_numeric(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
             ft <- c(h, fu[[1]])
         }
         
