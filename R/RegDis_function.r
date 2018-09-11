@@ -381,18 +381,39 @@ fuzzy_neyman <- function(Y, Wh, Z, cin = 95) {
     tau.c <- tau.y/tau.w
     tau.c
     
-    Vneyman.Y <- {
-        m.y1 * (1 - m.y1)
-    }/sum(Z == 1) + {
-        m.y0 * (1 - m.y0)
-    }/sum(Z == 0)
+    # binomial or       # continuous
+    if(length(table(Y))==2)
+    {
+      Vneyman.Y <- (m.y1 * (1 - m.y1) )/sum(Z == 1) + (m.y0 * (1 - m.y0) )/sum(Z == 0)
+      
+    } else if (length(table(Y)) > 2)
+    {
+      Vneyman.Y <- (var(Y[Z == 1]) )/sum(Z == 1) + (var(Y[Z == 0]) )/sum(Z == 0)
+    }
+    
+    # Vneyman.Y <- {
+    #     m.y1 * (1 - m.y1)
+    # }/sum(Z == 1) + {
+    #     m.y0 * (1 - m.y0)
+    # }/sum(Z == 0)
     Vneyman.Y
     sqrt(Vneyman.Y)
-    Vneyman.W <- {
-        m.w1 * (1 - m.w1)
-    }/sum(Z == 1) + {
-        m.w0 * (1 - m.w0)
-    }/sum(Z == 0)
+    
+    if(length(table(Y))==2)
+    {
+      Vneyman.W <- (m.w1 * (1 - m.w1) )/sum(Z == 1) + (m.w0 * (1 - m.w0) )/sum(Z == 0)
+      
+    } else if (length(table(Y)) > 2)
+    {
+      Vneyman.W <- (var(Y[Z == 1]) )/sum(Z == 1) + (var(Y[Z == 0]) )/sum(Z == 0)
+    }
+    
+    # Vneyman.W <- {
+    #     m.w1 * (1 - m.w1)
+    # }/sum(Z == 1) + {
+    #     m.w0 * (1 - m.w0)
+    # }/sum(Z == 0)
+    
     Vneyman.W
     sqrt(Vneyman.W)
     
