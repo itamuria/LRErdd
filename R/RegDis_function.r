@@ -342,8 +342,8 @@ sharp_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
         # number of records N
         N <- dim(dat_bw)[1]
         print(N)
-        zg <- dat_bw[, "assigVar"]
-        yg <- dat_bw[, Y_name]
+        zg <- as.numeric(dat_bw[, "assigVar"])
+        yg <- as.numeric(dat_bw[, Y_name])
         
         ft <- sharp_neyman(Y = yg, Z = zg, cin = cin)
         pbalioak <- c(pbalioak, ft)
@@ -470,9 +470,9 @@ fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
         # number of records N
         N <- dim(dat_bw)[1]
         print(N)
-        zg <- dat_bw[, "assigVar"]
-        yg <- dat_bw[, Y_name]
-        wg <- dat_bw[, W]
+        zg <- as.numeric(dat_bw[, "assigVar"])
+        yg <- as.numeric(dat_bw[, Y_name])
+        wg <- as.numeric(dat_bw[, W])
         
         ft <- fuzzy_neyman(Y = yg, Wh = wg, Z = zg, cin = cin)
         
