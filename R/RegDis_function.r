@@ -280,25 +280,16 @@ sharp_neyman <- function(Y, Z, cin) {
     
     ### Estimate of the Variance
     
-    # binomial
+    # binomial or       # continuous
     if(length(table(Y))==2)
     {
-      Vneyman <- {
-        m1 * (1 - m1)
-      }/sum(Z == 1) + {
-        m0 * (1 - m0)
-      }/sum(Z == 0)
-      Vneyman
+      Vneyman <- (m1 * (1 - m1) )/sum(Z == 1) + (m0 * (1 - m0) )/sum(Z == 0)
+      
     } else if (length(table(Y)) > 2)
       {
-      # continuous
-      Vneyman <- {
-        var(Y[Z == 1])
-      }/sum(Z == 1) + {
-        var(Y[Z == 0])
-      }/sum(Z == 0)
+      Vneyman <- (var(Y[Z == 1]) )/sum(Z == 1) + (var(Y[Z == 0]) )/sum(Z == 0)
     }
-
+    Vneyman
     
     ### 95% Confidence interval
     cig <- 1 - (100 - cin)/2/100
