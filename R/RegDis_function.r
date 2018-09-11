@@ -772,15 +772,15 @@ Tave <- function(x, z) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-sharp_FEP_adj <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", W_name = "W", covariates = c("sex", "HSHumanity", "HSTech", 
+sharp_FEP_adj <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", 
     "HSOther", "hsgrade", "Y2004"), niter = 1000, bandwidth = 1000, cut_value = 15000, whichunder = 1) {
     
     s0 <- cut_value
     S <- dataset[, forcing_var_name]  #Forcing variable
     Z <- ifelse(S >= s0, 0, 1)
-    W <- dataset[, W_name]  #Grant receipt status
+    # W <- dataset[, W_name]  #Grant receipt status
     
-    Y <- dataset[, Y_name]  #Outcome
+    # Y <- dataset[, Y_name]  #Outcome
     
     X <- dataset[, covariates]
     
@@ -798,7 +798,7 @@ sharp_FEP_adj <- function(dataset = data, forcing_var_name = "S", Y_name = "drop
     
     Sh <- dataset.h[, forcing_var_name]
     Zh <- ifelse(Sh >= s0, 0, 1)
-    Yh <- dataset.h[, Y_name]
+    # Yh <- dataset.h[, Y_name]
     
     Xh <- dataset[, covariates]
     
@@ -850,14 +850,14 @@ sharp_FEP_adj <- function(dataset = data, forcing_var_name = "S", Y_name = "drop
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-sharp_FEP_adj_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", W_name = "W", covariates = c("sex", "HSHumanity", "HSTech", 
+sharp_FEP_adj_bw <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", 
     "HSOther", "hsgrade", "Y2004"), niter = 1000, bandwidth = c(500, 1000, 5000), cut_value = 15000, whichunder = 1) {
     s0 <- cut_value
     S <- dataset[, forcing_var_name]  #Forcing variable
     Z <- ifelse(S >= s0, 0, 1)
-    W <- dataset[, W_name]  #Grant receipt status
+    # W <- dataset[, W_name]  #Grant receipt status
     
-    Y <- dataset[, Y_name]  #Outcome
+    # Y <- dataset[, Y_name]  #Outcome
     
     X <- dataset[, covariates]
     
@@ -870,8 +870,8 @@ sharp_FEP_adj_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "d
         print(bandwidth[h])
         print(dim(dataset))
         print(forcing_var_name)
-        print(Y_name)
-        print(W_name)
+        # print(Y_name)
+        # print(W_name)
         print(covariates)
         print(niter)
         print(bandwidth)
@@ -879,7 +879,7 @@ sharp_FEP_adj_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "d
         print(whichunder)
         
         
-        ss <- sharp_FEP_adj(dataset = dataset, forcing_var_name = forcing_var_name, Y_name = Y_name, W_name = W_name, covariates = covariates, 
+        ss <- sharp_FEP_adj(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, 
             niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, whichunder = whichunder)
         ss2 <- c(ss2, ss)
         namesbuffer <- c(namesbuffer, paste0("buf", bandwidth[h]))
