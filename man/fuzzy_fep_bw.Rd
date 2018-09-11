@@ -5,9 +5,9 @@
 \title{Fuzzy - FEP bandwidth}
 \usage{
 fuzzy_fep_bw(dataset = data, forcing_var_name = "S",
-  Y_name = "dropout", niter = 1000, W = "W", bandwidth = c(500,
-  1000, 1500), cut_value = 15000, M2 = 5, whichunder = 1,
-  typemod = "binary")
+  Y_name = "dropout", niter = 1000, W_name = "W",
+  bandwidth = c(500, 1000, 1500), cut_value = 15000, M2 = 5,
+  whichunder = 1, typemod = "binary")
 }
 \arguments{
 \item{dataset}{The dataset with the variables}
@@ -18,13 +18,13 @@ fuzzy_fep_bw(dataset = data, forcing_var_name = "S",
 
 \item{niter}{niter}
 
-\item{W}{selected}
-
 \item{bandwidth}{bandwidth}
 
 \item{cut_value}{cut_value}
 
 \item{forcing_bin_var_name}{forcing_bin_var_name}
+
+\item{W}{selected}
 }
 \value{
 data frame with variable and value and bandwidth

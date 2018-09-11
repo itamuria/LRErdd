@@ -5,16 +5,14 @@
 \title{Fisher p-values adjusted bw}
 \usage{
 sharp_FEP_adj_bw(dataset = data, forcing_var_name = "S",
-  Y_name = "dropout", W_name = "W", covariates = c("sex",
-  "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000,
-  bandwidth = c(500, 1000, 5000), cut_value = 15000, whichunder = 1)
+  covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade",
+  "Y2004"), niter = 1000, bandwidth = c(500, 1000, 5000),
+  cut_value = 15000, whichunder = 1)
 }
 \arguments{
 \item{dataset}{The dataset with the variables}
 
 \item{forcing_var_name}{forcing_var_name}
-
-\item{Y_name}{Y_name}
 
 \item{niter}{niter}
 
@@ -23,6 +21,8 @@ sharp_FEP_adj_bw(dataset = data, forcing_var_name = "S",
 \item{cut_value}{cut_value}
 
 \item{forcing_bin_var_name}{forcing_bin_var_name}
+
+\item{Y_name}{Y_name}
 }
 \value{
 data frame with variable and value and bandwidth

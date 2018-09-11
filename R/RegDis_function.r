@@ -114,8 +114,8 @@ fisher_exact_value <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dr
     for (m in 1:M) {
         Z.m <- sample(Z, Nh, replace = TRUE)
         
-        # leny <- length(table(Y)) if(leny ==2 ) { thyp.m <- abs(mean(Y[Z.m==1])-mean(Y[Z.m==0])) ### i have to change it to binomial } else if(leny >
-        # 2) { thyp.m <- abs(mean(Y[Z.m==1])-mean(Y[Z.m==0])) }
+        # leny <- length(table(Y)) if(leny ==2 ) { thyp.m <- abs(mean(Y[Z.m==1])-mean(Y[Z.m==0])) ### i have to change it to binomial } else if(leny > 2) { thyp.m <-
+        # abs(mean(Y[Z.m==1])-mean(Y[Z.m==0])) }
         
         thyp.m <- abs(mean(Y[Z.m == 1]) - mean(Y[Z.m == 0]))
         p.value <- p.value + as.numeric(thyp.m >= tobs)
@@ -145,8 +145,8 @@ fisher_exact_value <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dr
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-bw_sens_pajd <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, covariates = c("sex", "HSHumanity", "HSTech", 
-    "HSOther", "hsgrade", "Y2004"), bandwidth = c(500, 1000, 1500), cut_value = 15000, whichunder = 1) {
+bw_sens_pajd <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), bandwidth = c(500, 
+    1000, 1500), cut_value = 15000, whichunder = 1) {
     # for each bandwidth
     len_bw <- length(bandwidth)
     len_cov <- length(covariates)
@@ -211,8 +211,7 @@ bw_sens_pajd <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fep_values <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, bandwidth = c(500, 1000, 1500), cut_value = 15000, 
-    whichunder = 1) {
+fep_values <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, bandwidth = c(500, 1000, 1500), cut_value = 15000, whichunder = 1) {
     # for each bandwidth
     len_bw <- length(bandwidth)
     
@@ -250,8 +249,7 @@ fep_values <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout
     
     df <- cbind(bandwidth, dfp)
     names(df) <- c("Bandwith", "N", "Difference in average outcomes by treatment status
-Statistic", "Absolute value of difference in average outcomes", 
-        "p-value")
+Statistic", "Absolute value of difference in average outcomes", "p-value")
     return(df)
     
 }  # function end
@@ -280,14 +278,12 @@ sharp_neyman <- function(Y, Z, cin) {
     
     ### Estimate of the Variance
     
-    # binomial or       # continuous
-    if(length(table(Y))==2)
-    {
-      Vneyman <- (m1 * (1 - m1) )/sum(Z == 1) + (m0 * (1 - m0) )/sum(Z == 0)
-      
-    } else if (length(table(Y)) > 2)
-      {
-      Vneyman <- (var(Y[Z == 1]) )/sum(Z == 1) + (var(Y[Z == 0]) )/sum(Z == 0)
+    # binomial or # continuous
+    if (length(table(Y)) == 2) {
+        Vneyman <- (m1 * (1 - m1))/sum(Z == 1) + (m0 * (1 - m0))/sum(Z == 0)
+        
+    } else if (length(table(Y)) > 2) {
+        Vneyman <- (var(Y[Z == 1]))/sum(Z == 1) + (var(Y[Z == 0]))/sum(Z == 0)
     }
     Vneyman
     
@@ -314,8 +310,7 @@ sharp_neyman <- function(Y, Z, cin) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-sharp_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, bandwidth = c(500, 1000, 1500), cut_value = 15000, 
-    whichunder = 1, cin = 95) {
+sharp_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, bandwidth = c(500, 1000, 1500), cut_value = 15000, whichunder = 1, cin = 95) {
     # for each bandwidth
     len_bw <- length(bandwidth)
     
@@ -381,38 +376,26 @@ fuzzy_neyman <- function(Y, Wh, Z, cin = 95) {
     tau.c <- tau.y/tau.w
     tau.c
     
-    # binomial or       # continuous
-    if(length(table(Y))==2)
-    {
-      Vneyman.Y <- (m.y1 * (1 - m.y1) )/sum(Z == 1) + (m.y0 * (1 - m.y0) )/sum(Z == 0)
-      
-    } else if (length(table(Y)) > 2)
-    {
-      Vneyman.Y <- (var(Y[Z == 1]) )/sum(Z == 1) + (var(Y[Z == 0]) )/sum(Z == 0)
+    # binomial or # continuous
+    if (length(table(Y)) == 2) {
+        Vneyman.Y <- (m.y1 * (1 - m.y1))/sum(Z == 1) + (m.y0 * (1 - m.y0))/sum(Z == 0)
+        
+    } else if (length(table(Y)) > 2) {
+        Vneyman.Y <- (var(Y[Z == 1]))/sum(Z == 1) + (var(Y[Z == 0]))/sum(Z == 0)
     }
     
-    # Vneyman.Y <- {
-    #     m.y1 * (1 - m.y1)
-    # }/sum(Z == 1) + {
-    #     m.y0 * (1 - m.y0)
-    # }/sum(Z == 0)
+    # Vneyman.Y <- { m.y1 * (1 - m.y1) }/sum(Z == 1) + { m.y0 * (1 - m.y0) }/sum(Z == 0)
     Vneyman.Y
     sqrt(Vneyman.Y)
     
-    if(length(table(Y))==2)
-    {
-      Vneyman.W <- (m.w1 * (1 - m.w1) )/sum(Z == 1) + (m.w0 * (1 - m.w0) )/sum(Z == 0)
-      
-    } else if (length(table(Y)) > 2)
-    {
-      Vneyman.W <- (var(Y[Z == 1]) )/sum(Z == 1) + (var(Y[Z == 0]) )/sum(Z == 0)
+    if (length(table(Y)) == 2) {
+        Vneyman.W <- (m.w1 * (1 - m.w1))/sum(Z == 1) + (m.w0 * (1 - m.w0))/sum(Z == 0)
+        
+    } else if (length(table(Y)) > 2) {
+        Vneyman.W <- (var(Y[Z == 1]))/sum(Z == 1) + (var(Y[Z == 0]))/sum(Z == 0)
     }
     
-    # Vneyman.W <- {
-    #     m.w1 * (1 - m.w1)
-    # }/sum(Z == 1) + {
-    #     m.w0 * (1 - m.w0)
-    # }/sum(Z == 0)
+    # Vneyman.W <- { m.w1 * (1 - m.w1) }/sum(Z == 1) + { m.w0 * (1 - m.w0) }/sum(Z == 0)
     
     Vneyman.W
     sqrt(Vneyman.W)
@@ -440,8 +423,8 @@ fuzzy_neyman <- function(Y, Wh, Z, cin = 95) {
     
     # Using 2SLS library(sem) tsls(Y ~ Wh, ~ Z)
     
-    vector <- c(tau.w, tau.y, tau.c, sqrt(Vneyman.W), sqrt(Vneyman.Y), sqrt(Vtau.c), tau.w - zz * sqrt(Vneyman.W), tau.y - zz * sqrt(Vneyman.Y), 
-        tau.c - zz * sqrt(Vtau.c), tau.w + zz * sqrt(Vneyman.W), tau.y + zz * sqrt(Vneyman.Y), tau.c + zz * sqrt(Vtau.c))
+    vector <- c(tau.w, tau.y, tau.c, sqrt(Vneyman.W), sqrt(Vneyman.Y), sqrt(Vtau.c), tau.w - zz * sqrt(Vneyman.W), tau.y - zz * sqrt(Vneyman.Y), tau.c - zz * sqrt(Vtau.c), tau.w + 
+        zz * sqrt(Vneyman.W), tau.y + zz * sqrt(Vneyman.Y), tau.c + zz * sqrt(Vtau.c))
     return(vector)
 }
 
@@ -459,8 +442,8 @@ fuzzy_neyman <- function(Y, Wh, Z, cin = 95) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W = "W", bandwidth = c(500, 1000, 1500), 
-    cut_value = 15000, whichunder = 1, cin = 95) {
+fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W = "W", bandwidth = c(500, 1000, 1500), cut_value = 15000, whichunder = 1, 
+    cin = 95) {
     # for each bandwidth
     len_bw <- length(bandwidth)
     
@@ -682,12 +665,12 @@ fuzzy_fep_numeric <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W_name = "W", bandwidth = c(500, 1000, 1500), cut_value = 15000, 
-    M2 = 5, whichunder = 1, typemod = "binary") {
-  
-    dataset$W <- dataset[,W_name]
-    dataset$Y <- dataset[,Y_name]
-  
+fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W_name = "W", bandwidth = c(500, 1000, 1500), cut_value = 15000, M2 = 5, whichunder = 1, 
+    typemod = "binary") {
+    
+    dataset$W <- dataset[, W_name]
+    dataset$Y <- dataset[, Y_name]
+    
     # for each bandwidth
     len_bw <- length(bandwidth)
     
@@ -699,7 +682,7 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
         dataset$assigVar <- ifelse(dataset[, forcing_var_name] <= cut_value, 0, 1)
     }
     
-    dataset$Z <- dataset$assigVar 
+    dataset$Z <- dataset$assigVar
     
     Sh <- dataset[, forcing_var_name]
     pbalioak <- c()
@@ -772,15 +755,15 @@ Tave <- function(x, z) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-sharp_FEP_adj <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", 
-    "HSOther", "hsgrade", "Y2004"), niter = 1000, bandwidth = 1000, cut_value = 15000, whichunder = 1) {
+sharp_FEP_adj <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000, bandwidth = 1000, cut_value = 15000, 
+    whichunder = 1) {
     
     s0 <- cut_value
     S <- dataset[, forcing_var_name]  #Forcing variable
     Z <- ifelse(S >= s0, 0, 1)
-    # W <- dataset[, W_name]  #Grant receipt status
+    # W <- dataset[, W_name] #Grant receipt status
     
-    # Y <- dataset[, Y_name]  #Outcome
+    # Y <- dataset[, Y_name] #Outcome
     
     X <- dataset[, covariates]
     
@@ -850,14 +833,14 @@ sharp_FEP_adj <- function(dataset = data, forcing_var_name = "S", covariates = c
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-sharp_FEP_adj_bw <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", 
-    "HSOther", "hsgrade", "Y2004"), niter = 1000, bandwidth = c(500, 1000, 5000), cut_value = 15000, whichunder = 1) {
+sharp_FEP_adj_bw <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000, bandwidth = c(500, 
+    1000, 5000), cut_value = 15000, whichunder = 1) {
     s0 <- cut_value
     S <- dataset[, forcing_var_name]  #Forcing variable
     Z <- ifelse(S >= s0, 0, 1)
-    # W <- dataset[, W_name]  #Grant receipt status
+    # W <- dataset[, W_name] #Grant receipt status
     
-    # Y <- dataset[, Y_name]  #Outcome
+    # Y <- dataset[, Y_name] #Outcome
     
     X <- dataset[, covariates]
     
@@ -870,8 +853,7 @@ sharp_FEP_adj_bw <- function(dataset = data, forcing_var_name = "S", covariates 
         print(bandwidth[h])
         print(dim(dataset))
         print(forcing_var_name)
-        # print(Y_name)
-        # print(W_name)
+        # print(Y_name) print(W_name)
         print(covariates)
         print(niter)
         print(bandwidth)
@@ -879,8 +861,7 @@ sharp_FEP_adj_bw <- function(dataset = data, forcing_var_name = "S", covariates 
         print(whichunder)
         
         
-        ss <- sharp_FEP_adj(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, 
-            niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, whichunder = whichunder)
+        ss <- sharp_FEP_adj(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, whichunder = whichunder)
         ss2 <- c(ss2, ss)
         namesbuffer <- c(namesbuffer, paste0("buf", bandwidth[h]))
     }
