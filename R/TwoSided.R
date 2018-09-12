@@ -80,7 +80,8 @@ M.step.bin2 <- function(G, dat) {
 EM.bin2 <- function(dat, tol = 1e-04, maxit = 1000) {
     
     pi.g <- rdirichlet(1, c(1, 1, 1))
-    theta <- list(pi.nt = pi.g[1], pi.at = pi.g[2], pi.c = pi.g[3], py.nt = rbeta(1, 1, 1), py.at = rbeta(1, 1, 1), py.c0 = rbeta(1, 1, 1), py.c1 = rbeta(1, 1, 1))
+    theta <- list(pi.nt = pi.g[1], pi.at = pi.g[2], pi.c = pi.g[3], py.nt = rbeta(1, 1, 1), py.at = rbeta(1, 1, 1), py.c0 = rbeta(1, 1, 1), py.c1 = rbeta(1, 
+        1, 1))
     rm(pi.g)
     plus <- function(x) {
         yy <- (x + 0.01)
@@ -158,8 +159,8 @@ mcmc.bin2 <- function(n.iter, n.burn, dat) {
     n.draws <- n.iter - n.burn
     theta.prior <- list(a = c(1, 1, 1), ay.nt = c(1, 1), ay.at = c(1, 1), ay.c0 = c(1, 1), ay.c1 = c(1, 1))
     
-    theta <- list(pi = rdirichlet(1, theta.prior$a), py.nt = rbeta(1, theta.prior$ay.nt[1], theta.prior$ay.nt[2]), py.at = rbeta(1, theta.prior$ay.at[1], theta.prior$ay.at[2]), py.c0 = rbeta(1, 
-        theta.prior$ay.c0[1], theta.prior$ay.c0[2]), py.c1 = rbeta(1, theta.prior$ay.c1[1], theta.prior$ay.c1[2]))
+    theta <- list(pi = rdirichlet(1, theta.prior$a), py.nt = rbeta(1, theta.prior$ay.nt[1], theta.prior$ay.nt[2]), py.at = rbeta(1, theta.prior$ay.at[1], 
+        theta.prior$ay.at[2]), py.c0 = rbeta(1, theta.prior$ay.c0[1], theta.prior$ay.c0[2]), py.c1 = rbeta(1, theta.prior$ay.c1[1], theta.prior$ay.c1[2]))
     
     THETA <- matrix(0, n.draws, length(unlist(theta)))
     colnames(THETA) <- c("pi.nt", "pi.at", "pi.c", "py.nt", "py.at", "py.c0", "py.c1")
@@ -256,8 +257,8 @@ mcmc.bin.h02 <- function(n.iter, n.burn, dat) {
     n.draws <- n.iter - n.burn
     theta.prior <- list(a = c(1, 1, 1), ay.nt = c(1, 1), ay.at = c(1, 1), ay.c = c(1, 1))
     
-    theta <- list(pi = rdirichlet(1, theta.prior$a), py.nt = rbeta(1, theta.prior$ay.nt[1], theta.prior$ay.nt[2]), py.at = rbeta(1, theta.prior$ay.at[1], theta.prior$ay.at[2]), py.c = rbeta(1, 
-        theta.prior$ay.c[1], theta.prior$ay.c[2]))
+    theta <- list(pi = rdirichlet(1, theta.prior$a), py.nt = rbeta(1, theta.prior$ay.nt[1], theta.prior$ay.nt[2]), py.at = rbeta(1, theta.prior$ay.at[1], 
+        theta.prior$ay.at[2]), py.c = rbeta(1, theta.prior$ay.c[1], theta.prior$ay.c[2]))
     
     
     THETA <- matrix(0, n.draws, length(unlist(theta)))
@@ -378,9 +379,9 @@ M.step.gauss2 <- function(G, dat) {
 EM.gauss2 <- function(dat, tol = 1e-04, maxit = 1000) {
     
     pi.g <- rdirichlet(1, c(1, 1, 1))
-    theta <- list(pi.nt = pi.g[1], pi.at = pi.g[2], pi.c = pi.g[3], mu.nt = mean(dat$Y) + rnorm(1, 0, sd(dat$Y)), sigma2.nt = runif(1, 0, var(dat$Y)), mu.at = mean(dat$Y) + rnorm(1, 
-        0, sd(dat$Y)), sigma2.at = runif(1, 0, var(dat$Y)), mu.c0 = mean(dat$Y) + rnorm(1, 0, sd(dat$Y)), sigma2.c0 = runif(1, 0, var(dat$Y)), mu.c1 = mean(dat$Y) + rnorm(1, 0, sd(dat$Y)), 
-        sigma2.c1 = runif(1, 0, var(dat$Y)))
+    theta <- list(pi.nt = pi.g[1], pi.at = pi.g[2], pi.c = pi.g[3], mu.nt = mean(dat$Y) + rnorm(1, 0, sd(dat$Y)), sigma2.nt = runif(1, 0, var(dat$Y)), 
+        mu.at = mean(dat$Y) + rnorm(1, 0, sd(dat$Y)), sigma2.at = runif(1, 0, var(dat$Y)), mu.c0 = mean(dat$Y) + rnorm(1, 0, sd(dat$Y)), sigma2.c0 = runif(1, 
+            0, var(dat$Y)), mu.c1 = mean(dat$Y) + rnorm(1, 0, sd(dat$Y)), sigma2.c1 = runif(1, 0, var(dat$Y)))
     
     plus <- function(x) {
         yy <- x + 1
@@ -423,7 +424,8 @@ da.gauss2 <- function(theta, dat) {
     G[dat$Z == 1 & dat$W == 0] <- 1  ##Never - takers
     
     num <- theta$pi[3] * dnorm(dat$Y[dat$Z == 0 & dat$W == 0], theta$mu.c0, sqrt(theta$sigma2.c0))
-    den <- theta$pi[1] * dnorm(dat$Y[dat$Z == 0 & dat$W == 0], theta$mu.nt, sqrt(theta$sigma2.nt)) + theta$pi[3] * dnorm(dat$Y[dat$Z == 0 & dat$W == 0], theta$mu.c0, sqrt(theta$sigma2.c0))
+    den <- theta$pi[1] * dnorm(dat$Y[dat$Z == 0 & dat$W == 0], theta$mu.nt, sqrt(theta$sigma2.nt)) + theta$pi[3] * dnorm(dat$Y[dat$Z == 0 & dat$W == 0], 
+        theta$mu.c0, sqrt(theta$sigma2.c0))
     
     pc.00 <- num/den
     pc.00[num == 0] <- 0
@@ -433,7 +435,8 @@ da.gauss2 <- function(theta, dat) {
     rm(num, den, pc.00, u.00)
     
     num <- theta$pi[3] * dnorm(dat$Y[dat$Z == 1 & dat$W == 1], theta$mu.c1, sqrt(theta$sigma2.c1))
-    den <- theta$pi[2] * dnorm(dat$Y[dat$Z == 1 & dat$W == 1], theta$mu.at, sqrt(theta$sigma2.at)) + theta$pi[3] * dnorm(dat$Y[dat$Z == 1 & dat$W == 1], theta$mu.c1, sqrt(theta$sigma2.c1))
+    den <- theta$pi[2] * dnorm(dat$Y[dat$Z == 1 & dat$W == 1], theta$mu.at, sqrt(theta$sigma2.at)) + theta$pi[3] * dnorm(dat$Y[dat$Z == 1 & dat$W == 1], 
+        theta$mu.c1, sqrt(theta$sigma2.c1))
     
     pc.11 <- num/den
     pc.11[num == 0] <- 0
@@ -459,9 +462,9 @@ mcmc.gauss2 <- function(n.iter, n.burn, dat) {
     n.draws <- n.iter - n.burn
     theta.prior <- list(a = c(1, 1, 1))
     
-    theta <- list(pi = rdirichlet(1, c(1, 1, 1)), mu.nt = mean(dat$Y) + rnorm(1, 0, 1), sigma2.nt = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.at = mean(dat$Y) + rnorm(1, 0, 1), 
-        sigma2.at = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.c0 = mean(dat$Y) + rnorm(1, 0, 1), sigma2.c0 = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.c1 = mean(dat$Y) + rnorm(1, 
-            0, 1), sigma2.c1 = runif(1, var(dat$Y)/2, 2 * var(dat$Y)))
+    theta <- list(pi = rdirichlet(1, c(1, 1, 1)), mu.nt = mean(dat$Y) + rnorm(1, 0, 1), sigma2.nt = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.at = mean(dat$Y) + 
+        rnorm(1, 0, 1), sigma2.at = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.c0 = mean(dat$Y) + rnorm(1, 0, 1), sigma2.c0 = runif(1, var(dat$Y)/2, 2 * 
+        var(dat$Y)), mu.c1 = mean(dat$Y) + rnorm(1, 0, 1), sigma2.c1 = runif(1, var(dat$Y)/2, 2 * var(dat$Y)))
     
     THETA <- matrix(0, n.draws, length(unlist(theta)))
     colnames(THETA) <- c("pi.nt", "pi.at", "pi.c", "mu.nt", "sigma2.nt", "mu.at", "sigma2.at", "mu.c0", "sigma2.c0", "mu.c1", "sigma2.c1")
@@ -547,7 +550,8 @@ da.gauss.h02 <- function(theta, dat) {
     G[dat$Z == 0 & dat$W == 1] <- 2  ##Always - takers
     
     num <- theta$pi[3] * dnorm(dat$Y[dat$Z == 0 & dat$W == 0], theta$mu.c, sqrt(theta$sigma2.c))
-    den <- theta$pi[1] * dnorm(dat$Y[dat$Z == 0 & dat$W == 0], theta$mu.nt, sqrt(theta$sigma2.nt)) + theta$pi[3] * dnorm(dat$Y[dat$Z == 0 & dat$W == 0], theta$mu.c, sqrt(theta$sigma2.c))
+    den <- theta$pi[1] * dnorm(dat$Y[dat$Z == 0 & dat$W == 0], theta$mu.nt, sqrt(theta$sigma2.nt)) + theta$pi[3] * dnorm(dat$Y[dat$Z == 0 & dat$W == 0], 
+        theta$mu.c, sqrt(theta$sigma2.c))
     
     pc.00 <- num/den
     pc.00[num == 0] <- 0
@@ -557,7 +561,8 @@ da.gauss.h02 <- function(theta, dat) {
     rm(num, den, pc.00, u.00)
     
     num <- theta$pi[3] * dnorm(dat$Y[dat$Z == 1 & dat$W == 1], theta$mu.c, sqrt(theta$sigma2.c))
-    den <- theta$pi[2] * dnorm(dat$Y[dat$Z == 1 & dat$W == 1], theta$mu.at, sqrt(theta$sigma2.at)) + theta$pi[3] * dnorm(dat$Y[dat$Z == 1 & dat$W == 1], theta$mu.c, sqrt(theta$sigma2.c))
+    den <- theta$pi[2] * dnorm(dat$Y[dat$Z == 1 & dat$W == 1], theta$mu.at, sqrt(theta$sigma2.at)) + theta$pi[3] * dnorm(dat$Y[dat$Z == 1 & dat$W == 1], 
+        theta$mu.c, sqrt(theta$sigma2.c))
     
     pc.11 <- num/den
     pc.11[num == 0] <- 0
@@ -583,8 +588,9 @@ mcmc.gauss.h02 <- function(n.iter, n.burn, dat) {
     n.draws <- n.iter - n.burn
     theta.prior <- list(a = c(1, 1, 1))
     
-    theta <- list(pi = rdirichlet(1, c(1, 1, 1)), mu.nt = mean(dat$Y) + rnorm(1, 0, 1), sigma2.nt = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.at = mean(dat$Y) + rnorm(1, 0, 1), 
-        sigma2.at = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.c = mean(dat$Y) + rnorm(1, 0, 1), sigma2.c = runif(1, var(dat$Y)/2, 2 * var(dat$Y)))
+    theta <- list(pi = rdirichlet(1, c(1, 1, 1)), mu.nt = mean(dat$Y) + rnorm(1, 0, 1), sigma2.nt = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.at = mean(dat$Y) + 
+        rnorm(1, 0, 1), sigma2.at = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.c = mean(dat$Y) + rnorm(1, 0, 1), sigma2.c = runif(1, var(dat$Y)/2, 2 * 
+        var(dat$Y)))
     THETA <- matrix(0, n.draws, length(unlist(theta)))
     colnames(THETA) <- c("pi.nt", "pi.at", "pi.c", "mu.nt", "sigma2.nt", "mu.at", "sigma2.at", "mu.c", "sigma2.c")
     Gstatus <- matrix(0, n.draws, nrow(dat))

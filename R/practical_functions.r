@@ -19,17 +19,16 @@ all_binom2num <- function(data) {
     return(data)
 }
 
-# Detect the format of the file
+#' Detect the format of the file
 #'
 #' @param pathfile a string with the name and format of the file
 #' @return the format of the file
 #' @export
 
-which.format<-function(pathfile)
-{
-  lenpath<-nchar(pathfile)
-  point<-gregexpr('\\.', pathfile)
-  point.pos<-point[[1]][length(point[[1]])]
-  format<-substr(pathfile,point.pos+1,lenpath)
-  return(format)
+which.format <- function(pathfile) {
+    lenpath <- nchar(pathfile)
+    point <- gregexpr("\\.", pathfile)
+    point.pos <- point[[1]][length(point[[1]])]
+    format <- substr(pathfile, point.pos + 1, lenpath)
+    return(format)
 }
