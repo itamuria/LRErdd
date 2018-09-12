@@ -10,5 +10,10 @@ License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 Imports:
-    shiny
+    shiny,
+    gtools,
+    ggplot2,
+    geoR,
+    kableExtra,
+    knitr
 RoxygenNote: 6.1.0
