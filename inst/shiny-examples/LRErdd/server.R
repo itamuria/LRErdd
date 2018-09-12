@@ -11,6 +11,7 @@ library(cowplot)
 library(dplyr)
 library(kableExtra)
 library(LRErdd)
+library(repmis)
 
 # source("RegDis_function.r")
 # source("Functions.r")
@@ -28,11 +29,7 @@ shinyServer(function(input, output) {
   #   hist(x, breaks = bins, col = 'darkgray', border = 'white')
   # 
   # })
-  
 
-  
-
-  
   inFile_ds <- reactive({
     
     inFile2 <- input$file_Db
@@ -42,7 +39,8 @@ shinyServer(function(input, output) {
   if (is.null(inFile2))
       {
         print("Nulo")
-        fitx <- load ("2018_fevdat.RData")
+        # fitx <- load ("2018_fevdat.RData")
+        fitx <- source_data("https://github.com/itamuria/LRErdd_dataset/blob/master/Grants.RData?raw=true")
         # fitx <- load ("Grants.RData")
         
         data.frame(get(fitx))

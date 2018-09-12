@@ -15,5 +15,6 @@ Imports:
     ggplot2,
     geoR,
     kableExtra,
-    knitr
+    knitr,
+    repmis
 RoxygenNote: 6.1.0
