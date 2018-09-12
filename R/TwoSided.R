@@ -1,4 +1,3 @@
-library(gtools)  ##Dirichlet
 
 #' Calculate MLE - EM
 #'

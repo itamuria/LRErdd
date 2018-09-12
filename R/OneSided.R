@@ -250,7 +250,7 @@ mcmc.bin.h0 <- function(n.iter, n.burn, dat) {
 
 
 
-library(geoR)  #Scaled-inverse chisq
+# library(geoR)  #Scaled-inverse chisq
 
 #' Calculate MLE - EM
 #'
