@@ -618,7 +618,7 @@ fuzzy_fep2sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
     for (i in 1:M) {
         
         ## Draw a random hypothetical assignment
-        Zh.sim <- sample(dath$Z, Nh, replace = TRUE)
+        Zh.sim <- sample(dataset$Z, Nh, replace = TRUE)
         
         Wh.sim <- 0 * {
             (1 - Zh.sim) * (G[i, ] == 1 | G[i, ] == 3) + Zh.sim * (G[i, ] == 1)
