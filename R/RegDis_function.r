@@ -745,9 +745,9 @@ fuzzy_fep_numeric1sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
 #' @export
 #'
 fuzzy_fep_numeric2sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
-    Y <- Yg
-    Z <- Zg
-    W <- Wg
+    Yh <- Yg
+    Zh <- Zg
+    Wh <- Wg
     
     
     G <- NULL
