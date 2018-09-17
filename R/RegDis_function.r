@@ -248,7 +248,7 @@ fep_values <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout
     dfp[, 2:3] <- round(dfp[, 2:3], 4)
     
     df <- cbind(bandwidth, dfp)
-    names(df) <- c("Bandwith", "N", "Difference in average outcomes by treatment status
+    names(df) <- c("Bandwidth", "N", "Difference in average outcomes by treatment status
 Statistic", "Absolute value of difference in average outcomes", 
         "p-value")
     return(df)
@@ -351,7 +351,7 @@ sharp_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
     dfp[, 2:5] <- round(dfp[, 2:5], 4)
     
     df <- cbind(bandwidth, dfp)
-    names(df) <- c("Bandwith", "N", "Average causal effect", "Neyman SE", paste0(cin, "% CI: Lower bound"), paste0(cin, "% CI: upper bound"))
+    names(df) <- c("Bandwidth", "N", "Average causal effect", "Neyman SE", paste0(cin, "% CI: Lower bound"), paste0(cin, "% CI: upper bound"))
     return(df)
     
 }  # function end
@@ -463,7 +463,7 @@ fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
     
     df2 <- data.frame(matrix(888, 1, 6))
     
-    names(df2) <- c("Bandwith", "Estimand", "Average causal effect", "Neyman SE", paste0(cin, "% CI: Lower bound"), paste0(cin, "% CI: upper bound"))
+    names(df2) <- c("Bandwidth", "Estimand", "Average causal effect", "Neyman SE", paste0(cin, "% CI: Lower bound"), paste0(cin, "% CI: upper bound"))
     
     for (b in 1:len_bw) {
         
@@ -486,8 +486,8 @@ fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
         dfp[, 1:4] <- round(dfp[, 1:4], 4)
         
         df <- cbind(rep(h, 3), c("ITT.W", "ITT.Y", "CACE"), dfp)
-        names(df) <- c("Bandwith", "Estimand", "Average causal effect", "Neyman SE", paste0(cin, "% CI: Lower bound"), paste0(cin, "% CI: upper bound"))
-        # names(df) <- c('Bandwith','N','Average causal effect','Neyman SE',paste0(cin,'% CI: Lower bound'),paste0(cin,'% CI: upper bound'))
+        names(df) <- c("Bandwidth", "Estimand", "Average causal effect", "Neyman SE", paste0(cin, "% CI: Lower bound"), paste0(cin, "% CI: upper bound"))
+        # names(df) <- c('Bandwidth','N','Average causal effect','Neyman SE',paste0(cin,'% CI: Lower bound'),paste0(cin,'% CI: upper bound'))
         df2 <- rbind(df2, df)
         
     }  # for b
@@ -583,11 +583,8 @@ fuzzy_fep1sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_fep2sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
-    Y <- Yg
-    Z <- Zg
-    W <- Wg
-    
+fuzzy_fep2sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
+
     Nh <- nrow(dataset)
     ## IV-ESTIMATOR
     ITT.Y <- mean(Y[Z == 1]) - mean(Y[Z == 0])
@@ -660,12 +657,8 @@ fuzzy_fep2sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_fep_numeric1sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
-    Y <- Yg
-    Z <- Zg
-    W <- Wg
-    
-    
+fuzzy_fep_numeric1sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
+
     # Yh<-grants.h$hsgrade set.seed <- (200)
     G <- NULL
     G[Z == 1 & W == 1] <- 1
@@ -744,12 +737,8 @@ fuzzy_fep_numeric1sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_fep_numeric2sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
-    Yh <- Yg
-    Zh <- Zg
-    Wh <- Wg
-    
-    
+fuzzy_fep_numeric2sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
+
     G <- NULL
     G[Zh == 0 & Wh == 1] <- 2
     G[Zh == 1 & Wh == 0] <- 1
@@ -871,7 +860,7 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     
     df2 <- data.frame(matrix(888, 1, 4))
     
-    names(df2) <- c("Bandwith", "Statistic: IV estimate of CACE", "Statistic: MLE of CACE", "Statistic: Posterior median of CACE")
+    names(df2) <- c("Bandwidth", "Statistic: IV estimate of CACE", "Statistic: MLE of CACE", "Statistic: Posterior median of CACE")
     
     for (b in 1:len_bw) {
         
@@ -892,19 +881,19 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
         # if numeric or dichotomic
         if (typemod == "binary") {
             if (typesided == "onesided") {
-                fu <- fuzzy_fep1sided(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
+                fu <- fuzzy_fep1sided(dat_bw, Y = yg, W = wg, Z = zg, Y_name = Y_name, M2 = M2)
                 ft <- c(h, fu[[1]])
             } else if (typesided == "twosided") {
-                fu <- fuzzy_fep2sided(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
+                fu <- fuzzy_fep2sided(dat_bw, Y = yg, W = wg, Z = zg, Y_name = Y_name, M2 = M2)
                 ft <- c(h, fu[[1]])
             }
             
         } else if (typemod == "numeric") {
             if (typesided == "onesided") {
-                fu <- fuzzy_fep_numeric1sided(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
+                fu <- fuzzy_fep_numeric1sided(dat_bw, Y = yg, W = wg, Z = zg, Y_name = Y_name, M2 = M2)
                 ft <- c(h, fu[[1]])
             } else if (typesided == "twosided") {
-                fu <- fuzzy_fep_numeric2sided(dat_bw, Yg = yg, Wg = wg, Zg = zg, Y_name = Y_name, M2 = M2)
+                fu <- fuzzy_fep_numeric2sided(dat_bw, Y = yg, W = wg, Z = zg, Y_name = Y_name, M2 = M2)
                 ft <- c(h, fu[[1]])
             }
             
