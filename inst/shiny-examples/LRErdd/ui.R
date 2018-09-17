@@ -1,291 +1,305 @@
-
-# This is the user-interface definition of a Shiny web application.
-# You can find out more about building applications with Shiny here:
-#
-# http://shiny.rstudio.com
-#
-
 library(shiny)
+library(ggplot2)
+library(cowplot)
+library(dplyr)
+library(kableExtra)
+library(LRErdd)
+library(shinydashboard)
+library(rhandsontable)
+library(DT)
+library(LRErdd)
+library(plotly)
+library(repmis)
+library(raster)
+library(openxlsx)
+library(gtools)
 
-shinyUI(fluidPage(
-
-  # Application title
-  titlePanel("Regression discontinuity"),
-
-  # Sidebar with a slider input for number of bins
-  sidebarLayout(
-    sidebarPanel(
-      conditionalPanel(
-        'input.dataset === "Import data"',
-        # radioButtons('Mode', 'Select kind of subset:',
-        #              c("All Data -> Readable formats:Json, csv, xml, xls(x)"='AllData',
-        #                "Sample of dataset (only with csv)"='SmallData'
-        #              )),
-        # 
-        fileInput('file_Db', 'Choose file to upload',
-                  accept = c(
-                    'text/csv',
-                    'text/comma-separated-values',
-                    'text/tab-separated-values',
-                    'text/plain',
-                    '.csv',
-                    '.tsv'
-                  )
-        ),
-        # p('In case of CSV please make a selection'),
-        # 
-        # textInput('Samplesize',"Sample size  (if you want to load all data write ALL)",5),
-        # 
-        # tags$hr(),
-        # radioButtons('sampleFL', 'Select kind of subset:',
-        #              c(First='First',
-        #                Sample='Sample'
-        #                # Last='Last'
-        #              )),
-        
-        radioButtons('sep2', 'Separator',
-                     c(Comma=',',
-                       Semicolon=';',
-                       Tab='\t'),
-                     ','),
-        checkboxInput('header2', 'Header', TRUE),
-        radioButtons('quote2', 'Quote',
-                     c(None='',
-                       'Double Quote'='"',
-                       'Single Quote'="'"),
-                     '"'),
-        tags$hr()
-        # selectInput('in3', 'Options', zutabe(), selectize=TRUE,multiple = TRUE),
-        # verbatimTextOutput('out3')
-        # uiOutput("choose_columns")
-      ),
-      
-      # conditionalPanel(
-      #   'input.dataset === "Summary Statistics"',
-      #   # uiOutput("col_sel_outcome2"),
-      #   uiOutput("col_sel_covar3")
-      # ),
-      
-      
-      conditionalPanel(
-        'input.dataset === "Summary of variables"',
-        uiOutput("col_sel_forcing7"),
-        numericInput('cutvalue2', 'Select cut value', 10),
-        radioButtons('onezero2', 'Select your case:',
-                     c("Z = 1 if S >= s0 and Z = 0 if S < s0" = 'under0',
-                       "Z = 1 if S <= s0 and Z = 0 if S > s0" = 'under1'),"under0" ),
-        
-        uiOutput("col_sel_covar2")
-      ),
-      
-      conditionalPanel(
-        'input.dataset === "Bandwidth selection"',
-          h2("Steps"),
-          p("1) Select % of the range of bandwidth"),
-          p("2) Select cut value and number of iterations"),
-          p("2) Select forcing variable"),
-          p("3) Select covariates"),
-          p("4) Run Part A"),
-          p("5) To check distribution of each variable select a variable and Run Part B"),
-          br(),
-          
-         
-          radioButtons('typerange', 'How do you want to control the range?',
-                     c("Percentage" = 'perce',
-                       "Balanced units" = 'balunit',
-                       "Unbalanced units" = 'unbalunit'),"perce" ),
-          numericInput('stepunit', 'Select the minimum unit', 1, width = "25%"),
-          uiOutput("ui_slide_range"),
-          # sliderInput("bins",
-          #           paste0("Select the range %"),
-          #           min = 0,
-          #           max = 100,
-          #           step = 1,
-          #           value = 50),
-          # numericInput('cutvalue', 'Select cut value', 15000),
-          numericInput('nsim', 'Number of iterations', 50),
-          # uiOutput("col_sel_forcing7"),
-          uiOutput("col_sel_covar"),
-          actionButton("go_bwsel", "Run part A"),downloadButton('downloadPlot', label = "Download Histogram"),downloadButton("downloadData", "Download Filtered Data"),
-        
-        br(),
-        br(),
-          uiOutput("col_sel_covar7"),
-          radioButtons('intchar', 'Binary or continuous?',
-                     c("Binary" = 'binary',
-                       "Continuous" = 'conti'),"binary" ),
-          actionButton("go2", "Run part B")
-      ),
-      
-      conditionalPanel(
-        'input.dataset === "Summary bandwidth selection"',
-        h2("Steps"),
-        p("1) Select bandwidths separated by comma"),
-        p("2) Select number of iterations"),
-        p("2) In the case of fuzzy FEP select number of iterations"),
-        p("3) Write the confident interval and select type of outcome"),
-        p("4) Select method, forcing variable, outcome, treatment status and covariates"),
-        p("5) To check distribution of each variable select a variable and Run Part B"),
-        br(),
-        textInput("bandwidths9", "Include the bandwidths", "500,1000,1500"),
-        numericInput('niter9',"Number of iterations",1000),
-        textInput("cin9", "Write the Confidence Interval", 95),
-        # radioButtons('typemod9', 'Select type of outcome:',
-        #              c('Binary'='binary',
-        #                'Continuous'='cont'), "binary"),
-        # radioButtons('onezero9', 'Select your case:',
-        #              c("Z = 1 if S >= s0 and Z = 0 if S < s0" = 'under0',
-        #                "Z = 1 if S <= s0 and Z = 0 if S > s0" = 'under1'),"under0" ),
-        # uiOutput("col_sel_covar_S9"),
-        # uiOutput("col_sel_covar_Y9"),
-        # 
-        # uiOutput("col_sel_covar_W9"),
-        uiOutput("col_sel_covar_covar9"),
-        actionButton("go9", "Run Analysis")
-      ),
-      
-      conditionalPanel(
-        'input.dataset === "Bandwidth analyses"',
-        h2("Steps"),
-        p("1) Select bandwidths separated by comma"),
-        p("2) Select number of iterations"),
-        p("2) In the case of fuzzy FEP select number of iterations"),
-        p("3) Write the confident interval and select type of outcome"),
-        p("4) Select method, forcing variable, outcome, treatment status and covariates"),
-        p("5) To check distribution of each variable select a variable and Run Part B"),
-        br(),
-        textInput("bandwidths", "Include the bandwidths", "500,1000,1500"),
-        numericInput('niter',"Number of iterations",1000),
-        textInput('M2',"Number of iterations for fuzzy FEP",5),
-        textInput("cin", "Write the Confidence Interval", 95),
-        radioButtons('typemod', 'Select type of outcome:',
-                     c('Binary'='binary',
-                       'Continuous'='cont'), "binary"),
-        uiOutput("col_sel_covar_Y"),
-        radioButtons('sel_method', 'Select the method:',
-                     # 
-                     c('Sharp RDD: FEP approach'='FEPRDis',
-                       'Sharp RDD: Neyman approach' = 'sharpNeyman',
-                       'Fuzzy RDD: FEP approach' = 'fuzzyFEP',
-                       'Fuzzy RDD: Neyman approach' = 'fuzzyNeyman'),'FEPRDis'),
-        
-        radioButtons('one2side', 'Select type of sided:',
-                     c('One sided'='onesided',
-                       'Two sided'='twosided'), "onesided"),
-        
-        # actionButton("goplot2", "Run Plot"),
-        # uiOutput("col_sel_covar_Z"),
-        # radioButtons('onezero', 'Select your case:',
-        #              c("Z = 1 if S >= s0 and Z = 0 if S < s0" = 'under0',
-        #                "Z = 1 if S <= s0 and Z = 0 if S > s0" = 'under1'),"under0" ),
-        # uiOutput("col_sel_covar_S"),
-        
-        
-        uiOutput("col_sel_covar_W"),
-        uiOutput("col_sel_covar_covar"),
-        helpText("Note: Fuzzy FEP take very long time. Be patient"),
-        actionButton("go", "Run Analysis")
-      )
-      
-
-      # conditionalPanel(
-      #   'input.dataset === "Regression Discontinuity"',
-      #   sliderInput("bins",
-      #               "Select the range:",
-      #               min = 1,
-      #               max = 100,
-      #               value = 100),
-      #   radioButtons('Method', 'Select the method:',
-      #                c("Sharp Fisher"='SharpFisher',
-      #                  "Sharp Neyman"='SharpNeyman',
-      #                  "Sharp Bayesian"='SharpBAyes',
-      #                  "Fuzzy Fisher"='FuzzyFisher',
-      #                  "Fuzzy Neyman"='FuzzyNeyman',
-      #                  "Fuzzy Bayesian"='FuzzyBayesian'
-      #                ))
-      #   # numericInput('cutvalue', 'Select cut value', 15000),
-      #   # uiOutput("col_sel_outcome"),
-      #   # uiOutput("col_sel_contreat"),
-      #   # uiOutput("col_sel_covar")
-      # ),
-      
-      # conditionalPanel(
-      #   'input.dataset === "Plot"',
-      #   textInput("bins", "Write the best bandwidth", 500),
-      #   uiOutput("col_sel_plot"),
-      #   radioButtons('type_plot', 'Select kind of plot:',
-      #                c("Only points"='OnlyPoint',
-      #                  "Points with lines"='PointLines',
-      #                  "Straight intervals"= "LinesStr",
-      #                  "Smooth intervals" = "LinesSmooth"
-      #                  # Last='Last'
-      #                ))
-      # )
-     
-    ),
-
-    # Show a plot of the generated distribution
-    mainPanel(
-      tabsetPanel(
-        id = 'dataset',
-        tabPanel('Import data', 
-                 dataTableOutput("MySampleTable") 
-        ),
-        
-        # tabPanel('Summary Statistics', 
-        #          h4("Summary"),
-        #          tableOutput("descriptive2")
-        #          
-        # ),
-        
-        tabPanel('Summary of variables', 
-                 h4("Summary of variables"),
-                 tableOutput("descriptive1")
-
-        ),
-        
-        tabPanel('Bandwidth selection', 
-                          h4("Part A - Histogram"),
-                          plotOutput("histogram"),
-                          h4("Part A - Summary"),
-                          tableOutput("summarydim"),
-                          tableOutput("summary"),
-                 
-                 h4("Part B - Distribution plot"),
-                 plotOutput("plotprop")
-        ),
-        
-        tabPanel('Summary bandwidth selection', 
-                 h4("Summary"),
-                 dataTableOutput("tablemethod9")
-                 # plotOutput("plotres")
-        ),
-        
-        tabPanel('Bandwidth analyses', 
-                 h4("Summary"),
-                 dataTableOutput("tablemethod"),
-                 h4("Plots"),
-                 plotOutput("plotres")
-        )
-        
-        # tabPanel('Regression Discontinuity', 
-        #          # verbatimTextOutput('out3'),
-        #          dataTableOutput("data_class"),
-        #          # plotOutput("distPlot"),
-        #          plotOutput("histogram"),
-        #          h4("Summary"),
-        #          tableOutput("summary")
-        #          # h4("froga"),
-        #          # verbatimTextOutput("contreat")
-        # ),
-        
-        # tabPanel('Plot', 
-        #          # plotOutput("histogram"),
-        #          plotOutput("Plot_lines")
-        #          
-        # )
-      
-    )
-    )
-  )
-))
+# source("AdjTP_plotly.R")
+# dashboardPage(skin = "black")
+## Step 1. UI - basic part of shiny app
+ui <- dashboardPage(skin = "blue",
+                    dashboardHeader(title = "LRErdd: Regression Discontinuity", titleWidth = 450),
+                    dashboardSidebar(width = 350,
+                                     tags$head(tags$style(HTML(' .skin-blue .sidebar-menu .treeview-menu> li.active > a,
+                                                               .skin-blue .sidebar-menu .treeview-menu> li:hover > a {
+                                                               color: #8aa4af;
+                                                               }
+                                                               
+                                                               .skin-blue .main-header .logo {
+                                                               background-color: #3c8dbc;
+                                                               }
+                                                               
+                                                               .skin-blue .main-header .logo:hover {
+                                                               background-color: #3c8dbc;
+                                                               }
+                                                               
+                                                               .skin-blue .sidebar-menu > li {
+                                                               white-space: normal;
+                                                               }
+                                                               
+                                                               .modebar {
+                                                               display: none !important;
+                                                               }
+                                                               
+                                                               
+                                                               '))), 
+                                     tags$style(".fa-table {color:#33cc33}"),     
+                                     tags$style(".table2 {color:#0099ff}"),     
+                                     
+                                     sidebarMenu(width = 350,
+                                                 menuSubItem( p(""),
+                                                              icon = NULL),
+                                                 menuItem("1A-Load Excel file", icon = icon("table"),
+                                                          menuSubItem(fileInput("excelfile", 
+                                                                                "Upload Excel file", 
+                                                                                accept=c('.xls', 
+                                                                                         '.xlsx')),
+                                                                      icon = NULL),
+                                                          # update dropdown for outcome + treatment selection when file is uploaded
+                                                          menuSubItem(numericInput('excel_sheetnumber', 'Select the sheet number', 1),icon = NULL),
+                                                          menuSubItem(numericInput('excel_startrow', 'Select the start row number', 1),icon = NULL),
+                                                          menuSubItem(textInput('excel_stringNA', 'Write the missing strings', "NA"),icon = NULL)
+                                                          
+                                                          # read.xlsx(file_to_read_excel$datapath, sheet = input$excel_sheetnumber, startRow = input$excel_startrow, na.strings = input$excel_stringNA)
+                                                          
+                                                          
+                                                 ),
+                                                 # tags$style(".fa-table {color:#ff3399}"),             
+                                                 menuItem("1B-Load R file", icon = icon("table",class="table2"),
+                                                          menuSubItem(fileInput("rdatafile", 
+                                                                                "Upload R file", 
+                                                                                accept=c('.rdata', '.RData',
+                                                                                         '.Rdata')),
+                                                                      icon = NULL)
+                                                          
+                                                 ),
+                                                 
+                                                 menuItem("2-Define settings for summary statistics", icon = icon("cogs"),
+                                                          menuSubItem(uiOutput("col_sel_forcing7"),icon = NULL),
+                                                          menuSubItem(numericInput('cutvalue2', 'Select threshold value', 15000),icon = NULL),
+                                                          menuSubItem(radioButtons('onezero2', 'Select your case:',
+                                                                                   c("Z = 1 if S >= s0 and Z = 0 if S < s0" = 'under0',
+                                                                                     "Z = 1 if S <= s0 and Z = 0 if S > s0" = 'under1'),"under0" ),icon = NULL),
+                                                          menuSubItem(uiOutput("col_sel_covar2"),icon = NULL),
+                                                          menuSubItem(actionButton("go_bwsel2", "Run"),icon = NULL)
+                                                          
+                                                 ), 
+                                                 
+                                                 menuItem("3-Bandwidth selection", icon = icon("microchip"),  
+                                                          
+                                                          menuSubItem(radioButtons('typerange', 'Select bandwidth control?',
+                                                                                   c("Percentage" = 'perce',
+                                                                                     "Balanced units" = 'balunit',
+                                                                                     "Unbalanced units" = 'unbalunit'),"perce" ),icon = NULL),
+                                                          menuSubItem(numericInput('stepunit', 'Select the minimum unit', 1, width = "60%"),icon = NULL),
+                                                          menuSubItem(uiOutput("ui_slide_range"),icon = NULL),
+                                                          menuSubItem(numericInput('nsim', 'Number of iterations', 50),icon = NULL),
+                                                          menuSubItem(uiOutput("col_sel_covar"),icon = NULL),
+                                                          menuSubItem(actionButton("go_bwsel", "Run part A"),icon = NULL),
+                                                          menuSubItem(uiOutput("col_sel_covar7"),icon = NULL),
+                                                          menuSubItem(radioButtons('intchar', 'Binary or continuous?',
+                                                                                   c("Binary" = 'binary',
+                                                                                     "Continuous" = 'conti'),"binary" ),icon = NULL),
+                                                          menuSubItem(actionButton("go2", "Run part B"),icon = NULL)
+                                                          #  )
+                                                 ),
+                                                 
+                                                 menuItem("4-Summary bandwidth selection", icon = icon("object-group"),  
+                                                          menuSubItem(textInput("bandwidths9", "Include the bandwidths", "500,1000,1500"),icon = NULL),
+                                                          menuSubItem(numericInput('niter9',"Number of iterations",1000),icon = NULL),
+                                                          # menuSubItem(textInput("cin9", "Select the alpha level", 0.05),icon = NULL),
+                                                          menuSubItem(uiOutput("col_sel_covar_covar9"),icon = NULL),
+                                                          menuSubItem(actionButton("go9", "Run Analysis"),icon = NULL)
+                                                 ),
+                                                 
+                                                 menuItem("5-Inference on causal effects", icon = icon("flag"), 
+                                                          menuSubItem( p("Please select the method and then the settings"), icon = NULL),
+                                                          radioButtons('sel_method', 'Select the method:',
+                                                                       c('Sharp RDD: FEP approach'='FEPRDis',
+                                                                         'Sharp RDD: Neyman approach' = 'sharpNeyman',
+                                                                         'Fuzzy RDD: FEP approach' = 'fuzzyFEP',
+                                                                         'Fuzzy RDD: Neyman approach' = 'fuzzyNeyman'),'FEPRDis'),
+                                                          textInput("bandwidths", "Include the bandwidths", "500,1000,1500"),
+                                                          radioButtons('typemod', 'Select type of outcome:',
+                                                                       c('Binary'='binary',
+                                                                         'Continuous'='cont'), "binary"),
+                                                          uiOutput("col_sel_covar_Y"),
+                                                          numericInput('niter',"Number of iterations",1000)
+                                                 ),
+                                                 
+                                                 menuItem("5A-Sharp FEP", icon = icon("flag"),  
+                                                          # radioButtons('sel_method', 'Select the method:',
+                                                          #              c('Sharp RDD: FEP approach'='FEPRDis'),'FEPRDis'),
+                                                          p("---"),
+                                                          actionButton("go_sharp_fep", "Run Analysis")
+                                                 ),
+                                                 
+                                                 menuItem("5B-Sharp Neyman", icon = icon("flag"),  
+                                                          # radioButtons('sel_method', 'Select the method:',
+                                                          #              c('Sharp RDD: Neyman approach' = 'sharpNeyman'),'sharpNeyman'),
+                                                          textInput("cin", "Select the alpha level", 0.05),
+                                                          actionButton("go_sharp_neyman", "Run Analysis")
+                                                 ),
+                                                 menuItem("5B-Fuzzy FEP", icon = icon("flag"),  
+                                                          # radioButtons('sel_method', 'Select the method:',
+                                                          #              c('Fuzzy RDD: FEP approach' = 'fuzzyFEP'),'fuzzyNeyman'),
+                                                          textInput('M2',"Number of iterations for fuzzy FEP",5),
+                                                          radioButtons('one2side', 'Select type of sided:',
+                                                                       c('One sided'='onesided',
+                                                                         'Two sided'='twosided'), "onesided"),
+                                                          uiOutput("col_sel_covar_W"),
+                                                          helpText("Note: Fuzzy FEP take very long time. Be patient"),
+                                                          actionButton("go_fuzzy_fep", "Run Analysis")
+                                                 ),
+                                                 menuItem("5B-Fuzzy Neyman", icon = icon("flag"), 
+                                                          # radioButtons('sel_method', 'Select the method:',
+                                                          #              c('Fuzzy RDD: Neyman approach' = 'fuzzyNeyman'),'fuzzyNeyman'),
+                                                          uiOutput("col_sel_covar_W_neyman"),
+                                                          actionButton("go_fuzzy_neyman", "Run Analysis")
+                                                 )
+                                                 
+                                                 # menuItem("Export data", icon = icon("history"),  
+                                                 #          
+                                                 #          textInput("namerdata", "Write the file name", value = filename),
+                                                 #          downloadButton("download ", "Download the table")
+                                                 #          
+                                                 # )
+                                     ) # sidebarMenu
+                                     ), # dashboardSidebar
+                    
+                    
+                    dashboardBody(    
+                      tabBox(width = "500px",
+                             # div(style = 'overflow-x: scroll', DT::dataTableOutput('exptable')),
+                             # tabPanel("Plot",
+                             #          fluidRow(
+                             #                   box(width = 12, height =700, plotlyOutput("ETP", height = "650px", width = "1000px")%>% 
+                             #                         withSpinner(color="#0dc5c1")%>% 
+                             #                         layout(height = "1000px"))
+                             #                   )
+                             #          ),
+                             
+                             tabPanel("Instructions", 
+                                      fluidRow(br(),
+                                               # basic
+                                               box(width = 12, h2("What you can do with LRErdd"),
+                                                   h4("Regression Discontinuity as Local Randomized Experiments"),
+                                                   p("We present the R LRErdd package with a case study. The package includes a set of functions for the design and analysis of Regression Discontinuity Designs as local randomized experiments within the potential outcome approach as formalized in Li et al (2015). 
+                                                     A sub-set of functions implements the design phase of the study where focus is on the selection of suitable subpopulations for which we can draw valid causal inference. 
+                                                     These functions provide summary statistics of pre-and post-treatment variables by treatment status, 
+                                                     and select suitable subpopulations around the threshold where pre-treatment variables are well balanced between treatment using randomization-based tests with adjustment for multiplicities. Functions for a visual inspection of the results are also provided. 
+                                                     Finally the LRErdd package includes a set of functions for drawing inference on causal effects for the selected subpopulations using randomization-based modes of inference. Specifically the Fisher Exact $p-$value and Neyman approaches are implemented for the analysis of both sharp and fuzzy RD designs. We illustrate our approach in a study concerning the effects of University grants on student dropout."), 
+                                                   
+                                                   p("Li F, Mattei A, Mealli F (2015). Bayesian inference for regression discontinuity designs withapplication to the evaluation of Italian university grants. The Annals of Applied Statistics,9(4), 1906-1931.")),
+                                               # data
+                                               box(width = 12, h2("Step by step"),
+                                                   h4("In the next sections you can see the steps that you should follow"),
+                                                   img(src='Squeme.jpg', align = "left", width = 1400, height = 420)
+                                               ),
+                                               
+                                               
+                                               box(width = 12, h2("1-Load data"),
+                                                   p("You can import the data from excel (xlsx) or R format (RData). Then you can see your data in the second tab called '1-Your Data'. If you don't have appropiate data you can use the dataset is included by default. This ")),
+                                               box(width = 12, h2("2-Define the parameters and Summary statistics"),
+                                                   p("Forcing variable (S), cut-value (s0)...")),
+                                               box(width = 12, h2("3-Bandwidth selection"),
+                                                   p("...")),
+                                               box(width = 12, h2("4-Summary Bandwidth selection"),
+                                                   p("...")),
+                                               box(width = 12, h2("5-Inference on causal effects"),
+                                                   p("..."))
+                                               
+                                               ) # fluidRow
+                                      ),   # tabPanel
+                             
+                             tabPanel("1-Your Data", 
+                                      fluidRow(
+                                        box(title = "View Data", 
+                                            width = NULL,
+                                            status = "primary", 
+                                            solidHeader = TRUE,
+                                            collapsible = TRUE,
+                                            div(style = 'overflow-x: scroll', DT::dataTableOutput('dto'))
+                                            # h2("Experiment Data")
+                                            # DTOutput("exptable"))
+                                        )
+                                        # fluidRow(
+                                        #   box(width = 12, h2("Imputed Data"), DTOutput("imptable"))
+                                        # )
+                                      )
+                             ),
+                             
+                             
+                             tabPanel("2-Summary statistics", 
+                                      fluidRow(
+                                        box(width = NULL,
+                                            status = "primary", 
+                                            solidHeader = TRUE,
+                                            collapsible = TRUE,
+                                            # div(style = 'overflow-x: scroll', DT::DTOutput('editable'))
+                                            h4("Summary statistics"),
+                                            tableOutput("descriptive1")
+                                        )
+                                        # fluidRow(
+                                        #   box(width = 12, h2("Imputed Data"), DTOutput("imptable"))
+                                        # )
+                                      )
+                             ),
+                             
+                             
+                             tabPanel("3-Bandwidth selection", 
+                                      fluidRow(
+                                        box(width = NULL,
+                                            status = "primary", 
+                                            solidHeader = TRUE,
+                                            collapsible = TRUE,
+                                            # div(style = 'overflow-x: scroll', rHandsontableOutput('table'))
+                                            
+                                            h4("Part A - Histogram"),
+                                            plotOutput("histogram"),
+                                            h4("Part A - Summary"),
+                                            tableOutput("summarydim"),
+                                            tableOutput("summary")
+                                        )),
+                                      fluidRow(
+                                        box(width = 12, h2("Imputed Data"), 
+                                            h4("Part B - Distribution plot"),
+                                            plotOutput("plotprop"))
+                                      )
+                             ),
+                             
+                             tabPanel("4-Summary Bandwidth selection", 
+                                      fluidRow(
+                                        box(width = NULL,
+                                            status = "primary", 
+                                            solidHeader = TRUE,
+                                            collapsible = TRUE,
+                                            # div(style = 'overflow-x: scroll', rHandsontableOutput('table'))
+                                            h4("Summary"),
+                                            dataTableOutput("tablemethod9")
+                                            
+                                        ))
+                             ),
+                             
+                             tabPanel("5-Inference on causal effects", 
+                                      fluidRow(
+                                        box(width = NULL,
+                                            status = "primary", 
+                                            solidHeader = TRUE,
+                                            collapsible = TRUE,
+                                            # div(style = 'overflow-x: scroll', rHandsontableOutput('table'))
+                                            
+                                            h4("Summary"),
+                                            dataTableOutput("tablemethod"),
+                                            h4("Plots"),
+                                            plotOutput("plotres")
+                                            
+                                            
+                                        ))
+                             )
+                             
+                             
+                             
+                                      )   # tabBox
+                             )
+                                     )
