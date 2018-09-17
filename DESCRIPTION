@@ -16,5 +16,15 @@ Imports:
     geoR,
     kableExtra,
     knitr,
-    repmis
+    repmis,
+    cowplot,
+    dplyr,
+    shinydashboard,
+    rhandsontable,
+    DT,
+    plotly,
+    repmis,
+    raster,
+    openxlsx,
+    gtools
 RoxygenNote: 6.1.0
