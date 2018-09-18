@@ -98,7 +98,7 @@ rd_filtering <- function(dataset = last, covariate = "AGE", num_out = 4, CT = "W
 #' @return data frame with variable and value
 #' @export
 #'
-fisher_exact_value <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", niter = 100) {
+sharp_fep_adj <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", niter = 100) {
     M <- niter
     Y <- as.numeric(dataset[, Y_name])
     Z <- dataset[, forcing_bin_var_name]
@@ -110,13 +110,8 @@ fisher_exact_value <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dr
     Nh <- length(Y)
     
     p.value <- 0
-    set.seed(201611)
     for (m in 1:M) {
         Z.m <- sample(Z, Nh, replace = TRUE)
-        
-        # leny <- length(table(Y)) if(leny ==2 ) { thyp.m <- abs(mean(Y[Z.m==1])-mean(Y[Z.m==0])) ### i have to change it to binomial } else if(leny > 2) {
-        # thyp.m <- abs(mean(Y[Z.m==1])-mean(Y[Z.m==0])) }
-        
         thyp.m <- abs(mean(Y[Z.m == 1]) - mean(Y[Z.m == 0]))
         p.value <- p.value + as.numeric(thyp.m >= tobs)
         # print(m)
@@ -132,72 +127,6 @@ fisher_exact_value <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dr
 }
 
 
-#' We want to create a table with different buffers for each variable in this case is adjusted by the number of covariates = bonferroni
-#'
-#' @param dataset The dataset with the variables
-#' @param forcing_bin_var_name forcing_bin_var_name
-#' @param forcing_var_name forcing_var_name
-#' @param Y_name Y_name
-#' @param niter niter
-#' @param covariates covariates
-#' @param bandwidth bandwidth
-#' @param cut_value cut_value
-#' @return data frame with variable and value and bandwidth
-#' @export
-#'
-bw_sens_pajd <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, covariates = c("sex", "HSHumanity", "HSTech", "HSOther", 
-    "hsgrade", "Y2004"), bandwidth = c(500, 1000, 1500), cut_value = 15000, whichunder = 1) {
-    # for each bandwidth
-    len_bw <- length(bandwidth)
-    len_cov <- length(covariates)
-    
-    # Cut value
-    s0 <- cut_value
-    
-    if (whichunder == 1) {
-        dataset$assigVar <- ifelse(dataset[, forcing_var_name] <= cut_value, 1, 0)
-    } else if (whichunder == 0) {
-        dataset$assigVar <- ifelse(dataset[, forcing_var_name] <= cut_value, 0, 1)
-    }
-    
-    
-    Sh <- dataset[, forcing_var_name]
-    pbalioak <- c()
-    nak <- c()
-    
-    for (b in 1:len_bw) {
-        
-        # bandwidth
-        h <- bandwidth[b]
-        
-        # Filter dataste with bw
-        dat_bw <- dataset[Sh >= s0 - h & Sh <= s0 + h, ]
-        
-        # number of records N
-        N <- dim(dat_bw)[1]
-        print(N)
-        nak <- c(nak, N)
-        
-        # for each covariable we calculate the pvalue
-        for (c in 1:len_cov) {
-            ft <- fisher_exact_value(dataset = dat_bw, forcing_bin_var_name = "assigVar", Y_name = covariates[c], niter = 1000)
-            pbalioak <- c(pbalioak, ft[4, 2])
-        }  # for c
-    }  # for b
-    
-    # adjusted by the number of covariates
-    pbalioak <- pbalioak/len_cov
-    
-    dfp <- data.frame(matrix(pbalioak, ncol = 3))
-    dfn <- data.frame(matrix(nak, ncol = 3))
-    
-    df <- rbind(dfn, dfp)
-    df <- data.frame(c("N", covariates), df)
-    names(df) <- c("Variables", paste0("bw_", bandwidth))
-    return(df)
-    
-}  # function end
-
 
 #' Fisher p-values
 #'
@@ -211,7 +140,7 @@ bw_sens_pajd <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fep_values <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, bandwidth = c(500, 1000, 1500), cut_value = 15000, whichunder = 1) {
+sharp_fep_adj_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, bandwidth = c(500, 1000, 1500), cut_value = 15000, whichunder = 1) {
     # for each bandwidth
     len_bw <- length(bandwidth)
     
@@ -239,7 +168,7 @@ fep_values <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout
         N <- dim(dat_bw)[1]
         print(N)
         
-        ft <- fisher_exact_value(dataset = dat_bw, forcing_bin_var_name = "assigVar", Y_name = Y_name, niter = 1000)
+        ft <- sharp_fep_adj(dataset = dat_bw, forcing_bin_var_name = "assigVar", Y_name = Y_name, niter = 1000)
         pbalioak <- c(pbalioak, ft[, 2])
         
     }  # for b
@@ -254,6 +183,137 @@ Statistic", "Absolute value of difference in average outcomes",
     return(df)
     
 }  # function end
+
+
+#' Fisher p-values adjusted
+#'
+#' @param dataset The dataset with the variables
+#' @param forcing_bin_var_name forcing_bin_var_name
+#' @param forcing_var_name forcing_var_name
+#' @param Y_name Y_name
+#' @param niter niter
+#' @param bandwidth bandwidth
+#' @param cut_value cut_value
+#' @return data frame with variable and value and bandwidth
+#' @export
+#'
+rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000, 
+                          bandwidth = 1000, cut_value = 15000, whichunder = 1) {
+  
+  s0 <- cut_value
+  S <- dataset[, forcing_var_name]  #Forcing variable
+  Z <- ifelse(S >= s0, 0, 1)
+  # W <- dataset[, W_name] #Grant receipt status
+  
+  # Y <- dataset[, Y_name] #Outcome
+  
+  X <- dataset[, covariates]
+  
+  h <- bandwidth
+  ### NOT RUN: IT TAKES A WHILE
+  K <- niter
+  
+  # We can using, e.g. K=100 K<-100
+  M <- K
+  
+  dataset.h <- dataset[S >= s0 - h & S <= s0 + h, ]
+  
+  Nh <- nrow(dataset)
+  
+  
+  Sh <- dataset.h[, forcing_var_name]
+  Zh <- ifelse(Sh >= s0, 0, 1)
+  # Yh <- dataset.h[, Y_name]
+  
+  Xh <- dataset[, covariates]
+  
+  Th.obs <- apply(Xh, 2, Tave, Zh)
+  p.values.obs <- matrix(0, K, ncol(Xh))
+  Th.HYP <- matrix(0, K, ncol(Xh))
+
+  for (j in 1:K) {
+    Zh.hyp <- sample(Zh, Nh, replace = TRUE)
+    Th.hyp <- apply(Xh, 2, Tave, Zh.hyp)
+    p.values.obs[j, ] <- as.numeric(Th.hyp >= Th.obs)
+    Th.HYP[j, ] <- Th.hyp
+    rm(Zh.hyp, Th.hyp)
+  }
+  Pvalues.obs <- apply(p.values.obs, 2, mean)
+  
+  Pvalues.hyp.obs <- rep(0, M)
+  Adj.pvalues <- matrix(0, M, ncol(Xh))
+  
+  for (j in 1:M) {
+    Th.hyp.obs <- matrix(Th.HYP[j, ], (K - 1), ncol(Xh), byrow = T)
+    Pvalues.hyp <- apply(Th.hyp.obs >= Th.HYP[-j, ], 2, mean)
+    Pvalues.hyp.obs[j] <- min(Pvalues.hyp)
+    rm(Pvalues.hyp)
+    Adj.pvalues[j, ] <- 1 * (Pvalues.hyp.obs[j] <= Pvalues.obs)
+  }
+  
+  adj.pvalues <- apply(Adj.pvalues, 2, mean)
+  
+  names(adj.pvalues) <- names(X)
+  adj.pvalues
+  
+  return(adj.pvalues)
+  
+}  # function end
+
+
+
+
+#' Fisher p-values adjusted bw
+#'
+#' @param dataset The dataset with the variables
+#' @param forcing_bin_var_name forcing_bin_var_name
+#' @param forcing_var_name forcing_var_name
+#' @param Y_name Y_name
+#' @param niter niter
+#' @param bandwidth bandwidth
+#' @param cut_value cut_value
+#' @return data frame with variable and value and bandwidth
+#' @export
+#'
+rand_pajd_bw <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000, 
+                             bandwidth = c(500, 1000, 5000), cut_value = 15000, whichunder = 1) {
+  s0 <- cut_value
+  S <- dataset[, forcing_var_name]  #Forcing variable
+  Z <- ifelse(S >= s0, 0, 1)
+  # W <- dataset[, W_name] #Grant receipt status
+  
+  # Y <- dataset[, Y_name] #Outcome
+  
+  X <- dataset[, covariates]
+  
+  
+  lenbw <- length(bandwidth)
+  ss2 <- NULL
+  namesbuffer <- NULL
+  
+  for (h in 1:lenbw) {
+    print(bandwidth[h])
+    print(dim(dataset))
+    print(forcing_var_name)
+    # print(Y_name) print(W_name)
+    print(covariates)
+    print(niter)
+    print(bandwidth)
+    print(cut_value)
+    print(whichunder)
+    
+    
+    ss <- rand_pajd(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, 
+                        whichunder = whichunder)
+    ss2 <- c(ss2, ss)
+    namesbuffer <- c(namesbuffer, paste0("buf", bandwidth[h]))
+  }
+  
+  df <- data.frame(matrix(ss2, length(covariates), lenbw))
+  df2 <- data.frame(names(ss2)[1:length(covariates)], df)
+  names(df2) <- c("Names", namesbuffer)
+  return(df2)
+}
 
 
 #' SHARP RDD: RANDOMIZATION-BASED INFERENCE - NEYMAN APPROACH
@@ -659,7 +719,6 @@ fuzzy_fep2sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
 #'
 fuzzy_fep_numeric1sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
 
-    # Yh<-grants.h$hsgrade set.seed <- (200)
     G <- NULL
     G[Z == 1 & W == 1] <- 1
     G[Z == 1 & W == 0] <- 0
@@ -925,132 +984,4 @@ Tave <- function(x, z) {
 }
 
 
-#' Fisher p-values adjusted
-#'
-#' @param dataset The dataset with the variables
-#' @param forcing_bin_var_name forcing_bin_var_name
-#' @param forcing_var_name forcing_var_name
-#' @param Y_name Y_name
-#' @param niter niter
-#' @param bandwidth bandwidth
-#' @param cut_value cut_value
-#' @return data frame with variable and value and bandwidth
-#' @export
-#'
-sharp_FEP_adj <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000, 
-    bandwidth = 1000, cut_value = 15000, whichunder = 1) {
-    
-    s0 <- cut_value
-    S <- dataset[, forcing_var_name]  #Forcing variable
-    Z <- ifelse(S >= s0, 0, 1)
-    # W <- dataset[, W_name] #Grant receipt status
-    
-    # Y <- dataset[, Y_name] #Outcome
-    
-    X <- dataset[, covariates]
-    
-    h <- bandwidth
-    ### NOT RUN: IT TAKES A WHILE
-    K <- niter
-    
-    # We can using, e.g. K=100 K<-100
-    M <- K
-    
-    dataset.h <- dataset[S >= s0 - h & S <= s0 + h, ]
-    
-    Nh <- nrow(dataset)
-    
-    
-    Sh <- dataset.h[, forcing_var_name]
-    Zh <- ifelse(Sh >= s0, 0, 1)
-    # Yh <- dataset.h[, Y_name]
-    
-    Xh <- dataset[, covariates]
-    
-    Th.obs <- apply(Xh, 2, Tave, Zh)
-    p.values.obs <- matrix(0, K, ncol(Xh))
-    Th.HYP <- matrix(0, K, ncol(Xh))
-    set.seed(101010)
-    for (j in 1:K) {
-        Zh.hyp <- sample(Zh, Nh, replace = TRUE)
-        Th.hyp <- apply(Xh, 2, Tave, Zh.hyp)
-        p.values.obs[j, ] <- as.numeric(Th.hyp >= Th.obs)
-        Th.HYP[j, ] <- Th.hyp
-        rm(Zh.hyp, Th.hyp)
-    }
-    Pvalues.obs <- apply(p.values.obs, 2, mean)
-    
-    Pvalues.hyp.obs <- rep(0, M)
-    Adj.pvalues <- matrix(0, M, ncol(Xh))
-    
-    for (j in 1:M) {
-        Th.hyp.obs <- matrix(Th.HYP[j, ], (K - 1), ncol(Xh), byrow = T)
-        Pvalues.hyp <- apply(Th.hyp.obs >= Th.HYP[-j, ], 2, mean)
-        Pvalues.hyp.obs[j] <- min(Pvalues.hyp)
-        rm(Pvalues.hyp)
-        Adj.pvalues[j, ] <- 1 * (Pvalues.hyp.obs[j] <= Pvalues.obs)
-    }
-    
-    adj.pvalues <- apply(Adj.pvalues, 2, mean)
-    
-    names(adj.pvalues) <- names(X)
-    adj.pvalues
-    
-    return(adj.pvalues)
-    
-}  # function end
 
-
-
-
-#' Fisher p-values adjusted bw
-#'
-#' @param dataset The dataset with the variables
-#' @param forcing_bin_var_name forcing_bin_var_name
-#' @param forcing_var_name forcing_var_name
-#' @param Y_name Y_name
-#' @param niter niter
-#' @param bandwidth bandwidth
-#' @param cut_value cut_value
-#' @return data frame with variable and value and bandwidth
-#' @export
-#'
-sharp_FEP_adj_bw <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000, 
-    bandwidth = c(500, 1000, 5000), cut_value = 15000, whichunder = 1) {
-    s0 <- cut_value
-    S <- dataset[, forcing_var_name]  #Forcing variable
-    Z <- ifelse(S >= s0, 0, 1)
-    # W <- dataset[, W_name] #Grant receipt status
-    
-    # Y <- dataset[, Y_name] #Outcome
-    
-    X <- dataset[, covariates]
-    
-    
-    lenbw <- length(bandwidth)
-    ss2 <- NULL
-    namesbuffer <- NULL
-    
-    for (h in 1:lenbw) {
-        print(bandwidth[h])
-        print(dim(dataset))
-        print(forcing_var_name)
-        # print(Y_name) print(W_name)
-        print(covariates)
-        print(niter)
-        print(bandwidth)
-        print(cut_value)
-        print(whichunder)
-        
-        
-        ss <- sharp_FEP_adj(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, 
-            whichunder = whichunder)
-        ss2 <- c(ss2, ss)
-        namesbuffer <- c(namesbuffer, paste0("buf", bandwidth[h]))
-    }
-    
-    df <- data.frame(matrix(ss2, length(covariates), lenbw))
-    df2 <- data.frame(names(ss2)[1:length(covariates)], df)
-    names(df2) <- c("Names", namesbuffer)
-    return(df2)
-}
