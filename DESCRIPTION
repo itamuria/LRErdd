@@ -1,12 +1,15 @@
 Package: LRErdd
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.0.1
+Title: Regression Discontinuity Designs as Local Randomized Experiments
+Version: 0.0.2
 Author: Ibon Tamayo Uria
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Maintainer: Ibon Tamayo Uria <itamuria@gmail.com>
+Description: The \proglang{R} LRErdd package (Regression Discontinuity Designs as Local Randomized Experiments) includes a set of functions for the design and analysis of Regression Discontinuity Designs as local randomized experiments within the potential outcome approach as formalized in \cite{LiMatteiMealli2015}. 
+    We present the package with a case study. A subset of functions implements the design phase of the study where the focus is on the selection of suitable subpopulations for which we can draw valid causal inference. 
+    These functions provide summary statistics of pre-and post-treatment variables by treatment status and select suitable subpopulations around the threshold where pre-treatment variables are well balanced between treatment groups using randomization-based tests with adjustment for multiplicities. 
+    Functions for a visual inspection of the results are also provided. Finally, the LRErdd package includes a set of functions for drawing inference on causal effects for the selected subpopulations using randomization-based modes of inference. 
+    Specifically, the Fisher Exact $p-$value and Neyman approaches are implemented for the analysis of both sharp and fuzzy RD designs. We illustrate our approach in a study concerning the effects of University grants on the dropout.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
