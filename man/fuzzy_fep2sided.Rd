@@ -4,10 +4,12 @@
 \alias{fuzzy_fep2sided}
 \title{Fuzzy - FEP binary two sided}
 \usage{
-fuzzy_fep2sided(dataset, Yg, Wg, Zg, Y_name, M2 = 10)
+fuzzy_fep2sided(dataset, Y, W, Z, Y_name, M2 = 10)
 }
 \arguments{
 \item{dataset}{The dataset with the variables}
+
+\item{W}{selected}
 
 \item{Y_name}{Y_name}
 
@@ -22,8 +24,6 @@ fuzzy_fep2sided(dataset, Yg, Wg, Zg, Y_name, M2 = 10)
 \item{bandwidth}{bandwidth}
 
 \item{cut_value}{cut_value}
-
-\item{W}{selected}
 }
 \value{
 data frame with variable and value and bandwidth
