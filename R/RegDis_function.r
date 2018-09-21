@@ -113,7 +113,9 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
     print(covariates)
     print(dim(dataset))
     
-    X <- dataset[, covariates]
+    
+    X <- data.frame(dataset[, covariates])
+    if(length(covariates)==1) names(X) <- covariates
     
     print(dim(X))
     
@@ -137,7 +139,8 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
         Zh <- ifelse(Sh >= s0, 1, 0)
     }
     
-    Xh <- dataset.h[, covariates]
+    Xh <- data.frame(dataset.h[, covariates])
+    if(length(covariates)==1) names(Xh) <- covariates
     
     Th.obs <- apply(Xh, 2, Tave, Zh)
     p.values.obs <- matrix(0, K, ncol(Xh))
