@@ -210,7 +210,7 @@ rand_pajd_bw <- function(dataset = data, forcing_var_name = "S", covariates = c(
     }
     
     df <- data.frame(matrix(ss2, length(covariates), lenbw))
-    df2 <- data.frame(names(ss2)[1:length(covariates)], df)
+    df2 <- data.frame(covariates, df)
     names(df2) <- c("Names", namesbuffer)
     return(df2)
 }
