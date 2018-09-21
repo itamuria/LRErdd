@@ -163,7 +163,7 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
     names(adj.pvalues) <- names(X)
     dff <- data.frame(names(adj.pvalues), Pvalues.obs, adj.pvalues)
     names(dff)[1] <- c("Variables")
-    rownames(dff) <- NA
+    rownames(dff) <- NULL
     
     return(dff)
     
