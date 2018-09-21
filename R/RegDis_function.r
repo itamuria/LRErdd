@@ -110,7 +110,12 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
         Z <- ifelse(S >= s0, 1, 0)
     }
     
+    print(covariates)
+    print(dim(dataset))
+    
     X <- dataset[, covariates]
+    
+    print(dim(X))
     
     h <- bandwidth
     ### NOT RUN: IT TAKES A WHILE
