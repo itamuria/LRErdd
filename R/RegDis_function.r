@@ -195,7 +195,12 @@ rand_pajd_bw <- function(dataset = data, forcing_var_name = "S", covariates = c(
         Z <- ifelse(S >= s0, 1, 0)
     }
     
+    print(covariates)
+    print(dim(dataset))
+    
     X <- dataset[, covariates]
+    
+    print(dim(X))
     
     lenbw <- length(bandwidth)
     ss2 <- NULL
