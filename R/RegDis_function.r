@@ -170,7 +170,7 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
     
     adj.pvalues <- apply(Adj.pvalues, 2, mean)
     
-    print(paste0("Observerd: ",adj.pvalues))
+    print(paste0("Ajustado: ",adj.pvalues))
     
     names(adj.pvalues) <- names(X)
     dff <- data.frame(names(adj.pvalues), Pvalues.obs, adj.pvalues)
