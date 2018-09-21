@@ -155,6 +155,8 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
     }
     Pvalues.obs <- apply(p.values.obs, 2, mean)
     
+    print(paste0("Observerd: ",Pvalues.obs))
+    
     Pvalues.hyp.obs <- rep(0, M)
     Adj.pvalues <- matrix(0, M, ncol(Xh))
     
@@ -167,6 +169,8 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
     }
     
     adj.pvalues <- apply(Adj.pvalues, 2, mean)
+    
+    print(paste0("Observerd: ",adj.pvalues))
     
     names(adj.pvalues) <- names(X)
     dff <- data.frame(names(adj.pvalues), Pvalues.obs, adj.pvalues)
