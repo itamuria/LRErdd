@@ -104,11 +104,15 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
   
   s0 <- cut_value
   S <- dataset[, forcing_var_name]  #Forcing variable
-  Z <- ifelse(S >= s0, 0, 1)
-  # W <- dataset[, W_name] #Grant receipt status
   
-  # Y <- dataset[, Y_name] #Outcome
-  
+  if(whichunder==0)
+  {
+    Z <- ifelse(S >= s0, 0, 1)
+  } else if(whichunder==1)
+  {
+    Z <- ifelse(S >= s0, 1, 0)
+  }
+
   X <- dataset[, covariates]
   
   h <- bandwidth
@@ -120,14 +124,20 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
   
   dataset.h <- dataset[S >= s0 - h & S <= s0 + h, ]
   
-  Nh <- nrow(dataset)
+  Nh <- nrow(dataset.h)
   
   
   Sh <- dataset.h[, forcing_var_name]
-  Zh <- ifelse(Sh >= s0, 0, 1)
-  # Yh <- dataset.h[, Y_name]
   
-  Xh <- dataset[, covariates]
+  if(whichunder==0)
+  {
+    Zh <- ifelse(Sh >= s0, 0, 1)
+  } else if(whichunder==1)
+  {
+    Zh <- ifelse(Sh >= s0, 1, 0)
+  }
+
+  Xh <- dataset.h[, covariates]
   
   Th.obs <- apply(Xh, 2, Tave, Zh)
   p.values.obs <- matrix(0, K, ncol(Xh))
@@ -156,9 +166,11 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
   adj.pvalues <- apply(Adj.pvalues, 2, mean)
   
   names(adj.pvalues) <- names(X)
-  adj.pvalues
+  dff <- data.frame(names(adj.pvalues),Pvalues.obs,adj.pvalues)
+  names(dff)[1] <- c("Variables")
+  rownames(dff) <- NA
   
-  return(adj.pvalues)
+  return(dff)
   
 }  # function end
 
@@ -181,33 +193,28 @@ rand_pajd_bw <- function(dataset = data, forcing_var_name = "S", covariates = c(
                          niter = 1000, bandwidth = c(500, 1000, 5000), cut_value = 15000, whichunder = 1) {
   s0 <- cut_value
   S <- dataset[, forcing_var_name]  #Forcing variable
-  Z <- ifelse(S >= s0, 0, 1)
-  # W <- dataset[, W_name] #Grant receipt status
   
-  # Y <- dataset[, Y_name] #Outcome
-  
+  if(whichunder==0)
+  {
+    Z <- ifelse(S >= s0, 0, 1)
+  } else if(whichunder==1)
+  {
+    Z <- ifelse(S >= s0, 1, 0)
+  }
+
   X <- dataset[, covariates]
-  
-  
+
   lenbw <- length(bandwidth)
   ss2 <- NULL
   namesbuffer <- NULL
   
   for (h in 1:lenbw) {
-    print(bandwidth[h])
-    print(dim(dataset))
-    print(forcing_var_name)
-    # print(Y_name) print(W_name)
-    print(covariates)
-    print(niter)
-    print(bandwidth)
-    print(cut_value)
-    print(whichunder)
-    
-    
-    ss <- rand_pajd(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, whichunder = whichunder)
+
+    ss <- rand_pajd(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, 
+                    niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, whichunder = whichunder)
+    ss <- as.vector(ss[,3])
     ss2 <- c(ss2, ss)
-    namesbuffer <- c(namesbuffer, paste0("buf", bandwidth[h]))
+    namesbuffer <- c(namesbuffer, paste0("p-value[buf=", bandwidth[h],"]"))
   }
   
   df <- data.frame(matrix(ss2, length(covariates), lenbw))
