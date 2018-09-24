@@ -127,11 +127,14 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
     M <- K
     
     dataset.h <- dataset[S >= s0 - h & S <= s0 + h, ]
+    print(dim(dataset.h))
     
     Nh <- nrow(dataset.h)
     
     
     Sh <- dataset.h[, forcing_var_name]
+    
+
     
     if (whichunder == 0) {
         Zh <- ifelse(Sh >= s0, 0, 1)
