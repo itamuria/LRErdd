@@ -316,7 +316,7 @@ sharp_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
         N <- dim(dat_bw)[1]
         print(N)
         
-        ft <- sharp_fep_adj(dataset = dat_bw, forcing_bin_var_name = "assigVar", Y_name = Y_name, niter = 1000)
+        ft <- sharp_fep(dataset = dat_bw, forcing_bin_var_name = "assigVar", Y_name = Y_name, niter = 1000)
         pbalioak <- c(pbalioak, ft[, 2])
         
     }  # for b
