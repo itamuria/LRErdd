@@ -12,6 +12,8 @@ E.step.bin <- function(theta, dat) {
     den <- (1 - theta$pi.c) * dbinom(dat$Y, 1, theta$py.nt) + theta$pi.c * dbinom(dat$Y, 1, theta$py.c0)
     pG <- num/den
     
+    print(table(data$Z,dat$W))
+    
     G <- NULL
     G[dat$Z == 1 & dat$W == 1] <- 1
     G[dat$Z == 1 & dat$W == 0] <- 0
