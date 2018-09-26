@@ -252,10 +252,10 @@ sharp_fep <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", n
     print(paste0("M-",M))
     Y <- as.numeric(dataset[, Y_name])
     print(summary(Y))
-    print(paste0(Y))
+    print(head(paste0(Y)))
     Z <- dataset[, forcing_bin_var_name]
     print(summary(Z))
-    print(paste0(Z))
+    print(head(paste0(Z)))
     
     m1 <- mean(Y[dataset[, forcing_bin_var_name] == 1])
     print(paste0("m1-",m1))
