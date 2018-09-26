@@ -252,10 +252,15 @@ sharp_fep <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", n
     Z <- dataset[, forcing_bin_var_name]
     
     m1 <- mean(Y[dataset[, forcing_bin_var_name] == 1])
+    print(paste0("m1-",m1))
     m0 <- mean(Y[dataset[, forcing_bin_var_name] == 0])
+    print(paste0("m2-",m2))
     tave <- m1 - m0
+    print(paste0("tave-",tave))
     tobs <- abs(tave)
+    print(paste0("tobs-",tobs))
     Nh <- length(Y)
+    
     
     p.value <- 0
     for (m in 1:M) {
