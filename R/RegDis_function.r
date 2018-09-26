@@ -254,7 +254,7 @@ sharp_fep <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", n
     m1 <- mean(Y[dataset[, forcing_bin_var_name] == 1])
     print(paste0("m1-",m1))
     m0 <- mean(Y[dataset[, forcing_bin_var_name] == 0])
-    print(paste0("m2-",m2))
+    print(paste0("m0-",m0))
     tave <- m1 - m0
     print(paste0("tave-",tave))
     tobs <- abs(tave)
