@@ -10,16 +10,21 @@ all_binom2num <- function(data) {
     print(names(data)[h])
     tab1 <- table(data[, h])
     if (length(tab1) == 2) {
-      nam <- names(tab1)
-      first <- as.character(data[1, h])
-      if(is.na(as.numeric(first)))
-      {
-        data[, h] <- as.numeric(as.factor(data[, h]))-1
-      } else {
-        data[, h] <- as.numeric(as.character(data[, h]))
-      }
       
-      ifelse(data[, h] == nam[1], 0, 1)
+      nam <- names(tab1)
+      
+      if(!(nam[1]%in%c(0,1) & nam[2]%in%c(0,1)))
+      {
+        first <- as.character(data[1, h])
+        if (is.na(as.numeric(first))) 
+        {
+          data[, h] <- as.numeric(as.factor(data[, h])) - 1
+        }
+        else {
+          data[, h] <- as.numeric(as.character(data[,h])) - 1
+        }
+        ifelse(data[, h] == nam[1], 0, 1)
+      }
     }
   }
     
