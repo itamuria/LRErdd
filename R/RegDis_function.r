@@ -226,7 +226,7 @@ rand_pajd_bw <- function(dataset = data, forcing_var_name = "S", covariates = c(
         ss <- rand_pajd(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, whichunder = whichunder)
         ss <- as.vector(ss[, 3])
         ss2 <- c(ss2, ss)
-        namesbuffer <- c(namesbuffer, paste0("p-value[buf=", bandwidth[h], "]"))
+        namesbuffer <- c(namesbuffer, paste0("p-value[Bandwidth=", bandwidth[h], "]"))
     }
     
     df <- data.frame(matrix(ss2, length(covariates), lenbw))
