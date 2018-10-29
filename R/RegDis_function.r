@@ -226,7 +226,7 @@ rand_pajd_bw <- function(dataset = data, forcing_var_name = "S", covariates = c(
         ss <- rand_pajd(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, whichunder = whichunder)
         ss <- as.vector(ss[, 3])
         ss2 <- c(ss2, ss)
-        namesbuffer <- c(namesbuffer, paste0("p-value[Bandwidth=", bandwidth[h]/2, "]"))
+        namesbuffer <- c(namesbuffer, paste0("p-value[Bandwidth=", bandwidth[h], "]"))
     }
     
     df <- data.frame(matrix(ss2, length(covariates), lenbw))
@@ -318,7 +318,7 @@ sharp_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     for (b in 1:len_bw) {
         
         # bandwidth
-        h <- bandwidth[b]
+        h <- bandwidth[b]/2
         
         # Filter dataste with bw
         dat_bw <- dataset[Sh >= s0 - h & Sh <= s0 + h, ]
@@ -419,7 +419,7 @@ sharp_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
     for (b in 1:len_bw) {
         
         # bandwidth
-        h <- bandwidth[b]
+        h <- bandwidth[b]/2
         
         # Filter dataste with bw
         dat_bw <- dataset[Sh >= s0 - h & Sh <= s0 + h, ]
@@ -555,7 +555,7 @@ fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
     for (b in 1:len_bw) {
         
         # bandwidth
-        h <- bandwidth[b]
+        h <- bandwidth[b]/2
         
         # Filter dataste with bw
         dat_bw <- dataset[Sh >= s0 - h & Sh <= s0 + h, ]
@@ -951,7 +951,7 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     for (b in 1:len_bw) {
         
         # bandwidth
-        h <- bandwidth[b]
+        h <- bandwidth[b]/2
         
         # Filter dataste with bw
         dat_bw <- dataset[Sh >= s0 - h & Sh <= s0 + h, ]
