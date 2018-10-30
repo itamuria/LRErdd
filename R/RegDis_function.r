@@ -948,8 +948,10 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     nak <- c()
     
     df2 <- data.frame(matrix(888, 1, 4))
-    
     names(df2) <- c("Bandwidth", "Statistic: IV estimate of CACE", "Statistic: MLE of CACE", "Statistic: Posterior median of CACE")
+    dfvec <- data.frame(matrix(888, 1, 3))
+    names(dfvec) <- c( "CACE.IV","CACE.MLE","CACE.PM")
+    dfp <- 0
     
     for (b in 1:len_bw) {
         
@@ -989,11 +991,13 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
         }
         
         df2 <- rbind(df2, ft)
+        dfvec <- rbind(dfvec, fu[[2]])
+        dfp <- rbind(dfp, fu[[3]])
         
     }  # for b
     
     df2 <- df2[-1, ]
-    return(list(df2, fu[[2]], fu[[3]]))
+    return(list(df2, dfvec, dfp))
     
 }  # function end
 
