@@ -997,6 +997,7 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     }  # for b
     
     df2 <- df2[-1, ]
+    dfvec <- dfvec[-1,]
     return(list(df2, dfvec, dfp))
     
 }  # function end
