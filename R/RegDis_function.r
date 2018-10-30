@@ -267,22 +267,22 @@ sharp_fep <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", n
     print(paste0("tobs-",tobs))
     Nh <- length(Y)
     
-    
+    thyp.m <- 0
     p.value <- 0
     for (m in 1:M) {
         Z.m <- sample(Z, Nh, replace = TRUE)
-        thyp.m <- abs(mean(Y[Z.m == 1]) - mean(Y[Z.m == 0]))
-        p.value <- p.value + as.numeric(thyp.m >= tobs)
+        thyp.m <- c(thyp.m, abs(mean(Y[Z.m == 1]) - mean(Y[Z.m == 0])))
+        p.value <- p.value + as.numeric(thyp.m[m+1] >= tobs)
         # print(m)
     }
     p.value <- p.value/M
-    
+    thyp.m <- thyp.m[-1]
     # Results - Fisher Exact P-value for h0: Yi(0)=Yi(1)
     res1 <- c(Nh, tave, tobs, p.value)
     res1 <- data.frame(res1)
     res1 <- data.frame(c("Nh", "tave", "tobs", "p.value"), res1)
     names(res1) <- c("Variable", "Value")
-    return(res1)
+    return(list(res1=res1,thyp.m=thyp.m))
 }
 
 
@@ -315,6 +315,8 @@ sharp_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     pbalioak <- c()
     nak <- c()
     
+    hist_data <- list()
+    
     for (b in 1:len_bw) {
         
         # bandwidth
@@ -328,7 +330,8 @@ sharp_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
         print(N)
         
         ft <- sharp_fep(dataset = dat_bw, forcing_bin_var_name = "assigVar", Y_name = Y_name, niter = 1000)
-        pbalioak <- c(pbalioak, ft[, 2])
+        pbalioak <- c(pbalioak, ft$res1[, 2])
+        hist_data[[b]] <- ft$thyp.m
         
     }  # for b
     
@@ -338,7 +341,7 @@ sharp_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     df <- cbind(bandwidth, dfp)
     names(df) <- c("Bandwidth", "N", "Difference in average outcomes by treatment status
 Statistic", "Absolute value of difference in average outcomes", "p-value")
-    return(df)
+    return(list(df = df, hist_data = hist_data))
     
 }  # function end
 
