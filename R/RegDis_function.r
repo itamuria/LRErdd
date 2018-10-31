@@ -973,19 +973,19 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
         if (typemod == "binary") {
             if (typesided == "onesided") {
                 fu <- fuzzy_fep1sided(dat_bw, Y = yg, W = wg, Z = zg, Y_name = Y_name, M2 = M2)
-                ft <- c(h, fu[[1]])
+                ft <- c(bandwidth[b], fu[[1]])
             } else if (typesided == "twosided") {
                 fu <- fuzzy_fep2sided(dat_bw, Y = yg, W = wg, Z = zg, Y_name = Y_name, M2 = M2)
-                ft <- c(h, fu[[1]])
+                ft <- c(bandwidth[b], fu[[1]])
             }
             
         } else if (typemod == "numeric") {
             if (typesided == "onesided") {
                 fu <- fuzzy_fep_numeric1sided(dat_bw, Y = yg, W = wg, Z = zg, Y_name = Y_name, M2 = M2)
-                ft <- c(h, fu[[1]])
+                ft <- c(bandwidth[b], fu[[1]])
             } else if (typesided == "twosided") {
                 fu <- fuzzy_fep_numeric2sided(dat_bw, Y = yg, W = wg, Z = zg, Y_name = Y_name, M2 = M2)
-                ft <- c(h, fu[[1]])
+                ft <- c(bandwidth[b], fu[[1]])
             }
             
         }
