@@ -99,7 +99,8 @@ rd_filtering <- function(dataset = last, covariate = "AGE", num_out = 4, CT = "W
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000, bandwidth = 1000, cut_value = 15000, whichunder = 1) {
+rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000, bandwidth = 1000, 
+    cut_value = 15000, whichunder = 1) {
     
     s0 <- cut_value
     S <- dataset[, forcing_var_name]  #Forcing variable
@@ -134,7 +135,7 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
     
     Sh <- dataset.h[, forcing_var_name]
     
-
+    
     
     if (whichunder == 0) {
         Zh <- ifelse(Sh >= s0, 0, 1)
@@ -158,7 +159,7 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
     }
     Pvalues.obs <- apply(p.values.obs, 2, mean)
     
-    print(paste0("Observerd: ",Pvalues.obs))
+    print(paste0("Observerd: ", Pvalues.obs))
     
     Pvalues.hyp.obs <- rep(0, M)
     Adj.pvalues <- matrix(0, M, ncol(Xh))
@@ -173,7 +174,7 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
     
     adj.pvalues <- apply(Adj.pvalues, 2, mean)
     
-    print(paste0("Ajustado: ",adj.pvalues))
+    print(paste0("Ajustado: ", adj.pvalues))
     
     names(adj.pvalues) <- names(X)
     dff <- data.frame(names(adj.pvalues), Pvalues.obs, adj.pvalues)
@@ -199,8 +200,8 @@ rand_pajd <- function(dataset = data, forcing_var_name = "S", covariates = c("se
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-rand_pajd_bw <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000, bandwidth = c(500, 1000, 5000), cut_value = 15000, 
-    whichunder = 1) {
+rand_pajd_bw <- function(dataset = data, forcing_var_name = "S", covariates = c("sex", "HSHumanity", "HSTech", "HSOther", "hsgrade", "Y2004"), niter = 1000, bandwidth = c(500, 
+    1000, 5000), cut_value = 15000, whichunder = 1) {
     s0 <- cut_value
     S <- dataset[, forcing_var_name]  #Forcing variable
     
@@ -223,7 +224,8 @@ rand_pajd_bw <- function(dataset = data, forcing_var_name = "S", covariates = c(
     
     for (h in 1:lenbw) {
         
-        ss <- rand_pajd(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, whichunder = whichunder)
+        ss <- rand_pajd(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, 
+            whichunder = whichunder)
         ss <- as.vector(ss[, 3])
         ss2 <- c(ss2, ss)
         namesbuffer <- c(namesbuffer, paste0("p-value[Bandwidth=", bandwidth[h], "]"))
@@ -247,9 +249,9 @@ rand_pajd_bw <- function(dataset = data, forcing_var_name = "S", covariates = c(
 #' @export
 #'
 sharp_fep <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", niter = 100) {
-  print(paste0("forcing_bin_var_name-",forcing_bin_var_name))
+    print(paste0("forcing_bin_var_name-", forcing_bin_var_name))
     M <- niter
-    print(paste0("M-",M))
+    print(paste0("M-", M))
     Y <- as.numeric(dataset[, Y_name])
     print(summary(Y))
     print(head(paste0(Y)))
@@ -258,13 +260,13 @@ sharp_fep <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", n
     print(head(paste0(Z)))
     
     m1 <- mean(Y[dataset[, forcing_bin_var_name] == 1])
-    print(paste0("m1-",m1))
+    print(paste0("m1-", m1))
     m0 <- mean(Y[dataset[, forcing_bin_var_name] == 0])
-    print(paste0("m0-",m0))
+    print(paste0("m0-", m0))
     tave <- m1 - m0
-    print(paste0("tave-",tave))
+    print(paste0("tave-", tave))
     tobs <- abs(tave)
-    print(paste0("tobs-",tobs))
+    print(paste0("tobs-", tobs))
     Nh <- length(Y)
     
     thyp.m <- 0
@@ -272,7 +274,7 @@ sharp_fep <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", n
     for (m in 1:M) {
         Z.m <- sample(Z, Nh, replace = TRUE)
         thyp.m <- c(thyp.m, abs(mean(Y[Z.m == 1]) - mean(Y[Z.m == 0])))
-        p.value <- p.value + as.numeric(thyp.m[m+1] >= tobs)
+        p.value <- p.value + as.numeric(thyp.m[m + 1] >= tobs)
         # print(m)
     }
     p.value <- p.value/M
@@ -282,7 +284,7 @@ sharp_fep <- function(dataset, forcing_bin_var_name = "Z", Y_name = "dropout", n
     res1 <- data.frame(res1)
     res1 <- data.frame(c("Nh", "tave", "tobs", "p.value"), res1)
     names(res1) <- c("Variable", "Value")
-    return(list(res1=res1,thyp.m=thyp.m))
+    return(list(res1 = res1, thyp.m = thyp.m))
 }
 
 
@@ -403,7 +405,8 @@ sharp_neyman <- function(Y, Z, cin) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-sharp_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, bandwidth = c(500, 1000, 1500), cut_value = 15000, whichunder = 1, cin = 95) {
+sharp_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, bandwidth = c(500, 1000, 1500), cut_value = 15000, whichunder = 1, 
+    cin = 95) {
     # for each bandwidth
     len_bw <- length(bandwidth)
     
@@ -516,8 +519,8 @@ fuzzy_neyman <- function(Y, Wh, Z, cin = 95) {
     
     # Using 2SLS library(sem) tsls(Y ~ Wh, ~ Z)
     
-    vector <- c(tau.w, tau.y, tau.c, sqrt(Vneyman.W), sqrt(Vneyman.Y), sqrt(Vtau.c), tau.w - zz * sqrt(Vneyman.W), tau.y - zz * sqrt(Vneyman.Y), tau.c - zz * sqrt(Vtau.c), tau.w + zz * sqrt(Vneyman.W), 
-        tau.y + zz * sqrt(Vneyman.Y), tau.c + zz * sqrt(Vtau.c))
+    vector <- c(tau.w, tau.y, tau.c, sqrt(Vneyman.W), sqrt(Vneyman.Y), sqrt(Vtau.c), tau.w - zz * sqrt(Vneyman.W), tau.y - zz * sqrt(Vneyman.Y), tau.c - zz * 
+        sqrt(Vtau.c), tau.w + zz * sqrt(Vneyman.W), tau.y + zz * sqrt(Vneyman.Y), tau.c + zz * sqrt(Vtau.c))
     return(vector)
 }
 
@@ -535,7 +538,8 @@ fuzzy_neyman <- function(Y, Wh, Z, cin = 95) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W = "W", bandwidth = c(500, 1000, 1500), cut_value = 15000, whichunder = 1, cin = 95) {
+fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W = "W", bandwidth = c(500, 1000, 1500), cut_value = 15000, 
+    whichunder = 1, cin = 95) {
     # for each bandwidth
     len_bw <- length(bandwidth)
     
@@ -924,8 +928,8 @@ fuzzy_fep_numeric2sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W_name = "W", bandwidth = c(500, 1000, 1500), cut_value = 15000, M2 = 5, whichunder = 1, typemod = "binary", 
-    typesided = "onesided") {
+fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropout", niter = 1000, W_name = "W", bandwidth = c(500, 1000, 1500), cut_value = 15000, 
+    M2 = 5, whichunder = 1, typemod = "binary", typesided = "onesided") {
     
     dataset$W <- dataset[, W_name]
     dataset$Y <- dataset[, Y_name]
@@ -950,7 +954,7 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     df2 <- data.frame(matrix(888, 1, 4))
     names(df2) <- c("Bandwidth", "Statistic: IV estimate of CACE", "Statistic: MLE of CACE", "Statistic: Posterior median of CACE")
     dfvec <- data.frame(matrix(888, 1, 3))
-    names(dfvec) <- c( "CACE.IV","CACE.MLE","CACE.PM")
+    names(dfvec) <- c("CACE.IV", "CACE.MLE", "CACE.PM")
     dfp <- 0
     
     for (b in 1:len_bw) {
@@ -997,8 +1001,8 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     }  # for b
     
     df2 <- df2[-1, ]
-    dfvec <- dfvec[-1,]
-    dfp <- dfp[-1,]
+    dfvec <- dfvec[-1, ]
+    dfp <- dfp[-1, ]
     return(list(df2, dfvec, dfp))
     
 }  # function end

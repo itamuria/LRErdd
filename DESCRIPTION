@@ -1,7 +1,7 @@
 Package: LRErdd
 Type: Package
 Title: Regression Discontinuity Designs as Local Randomized Experiments
-Version: 0.0.2
+Version: 0.0.3
 Author: Ibon Tamayo Uria
 Maintainer: Ibon Tamayo Uria <itamuria@gmail.com>
 Description: The \proglang{R} LRErdd package (Regression Discontinuity Designs as Local Randomized Experiments) includes a set of functions for the design and analysis of Regression Discontinuity Designs as local randomized experiments within the potential outcome approach as formalized in \cite{LiMatteiMealli2015}. 
@@ -14,7 +14,6 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     shiny,
-    gtools,
     ggplot2,
     geoR,
     kableExtra,
@@ -26,7 +25,6 @@ Imports:
     rhandsontable,
     DT,
     plotly,
-    repmis,
     raster,
     openxlsx,
     gtools
