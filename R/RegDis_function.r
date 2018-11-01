@@ -320,7 +320,7 @@ sharp_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     for (b in 1:len_bw) {
         
         # bandwidth
-        h <- bandwidth[b]/2
+        h <- bandwidth[b]
         
         # Filter dataste with bw
         dat_bw <- dataset[Sh >= s0 - h & Sh <= s0 + h, ]
@@ -422,7 +422,7 @@ sharp_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
     for (b in 1:len_bw) {
         
         # bandwidth
-        h <- bandwidth[b]/2
+        h <- bandwidth[b]
         
         # Filter dataste with bw
         dat_bw <- dataset[Sh >= s0 - h & Sh <= s0 + h, ]
@@ -558,7 +558,7 @@ fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
     for (b in 1:len_bw) {
         
         # bandwidth
-        h <- bandwidth[b]/2
+        h <- bandwidth[b]
         
         # Filter dataste with bw
         dat_bw <- dataset[Sh >= s0 - h & Sh <= s0 + h, ]
@@ -956,7 +956,7 @@ fuzzy_fep_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dropo
     for (b in 1:len_bw) {
         
         # bandwidth
-        h <- bandwidth[b]/2
+        h <- bandwidth[b]
         
         # Filter dataste with bw
         dat_bw <- dataset[Sh >= s0 - h & Sh <= s0 + h, ]
