@@ -7,14 +7,47 @@
 ## ObserveEvent() specifies events that trigger reactions
 ## Render() displays outputs
 ## Reactive() needs user interaction, stored as objects
+
+set.seed(27)
+
 server <- function(input, output, session) {
   
   options(shiny.maxRequestSize = 9*1024^2)
+  
+  # observeEvent(input$select_effect,{
+  #   if(input$select_effect == "Sharp FEP"){
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "show", tabName = "5a"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5b"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5c"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5d"))
+  #   } else if(input$select_effect == "Sharp Neyman"){
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5a"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "show", tabName = "5b"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5c"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5d"))
+  #   } else if(input$select_effect == "Fuzzy FEP"){
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5a"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5b"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "show", tabName = "5c"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5d"))
+  #   } else if(input$select_effect == "Fuzzy Neyman"){
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5a"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5b"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "hide", tabName = "5c"))
+  #     session$sendCustomMessage(type = "manipulateMenuItem", message = list(action = "show", tabName = "5d"))
+  #   }
+  #   
+  # })
+  
+
+# 1-Load data -------------------------------------------------------------
+
   
   inFile_ds <- reactive({
     
     fitx <- source_data("https://github.com/itamuria/LRErdd_dataset/blob/master/Grants.RData?raw=true")
     fitx <- data.frame(get(fitx))
+    
     
     file_to_read_excel <- input$excelfile
     print(file_to_read_excel)
@@ -42,12 +75,23 @@ server <- function(input, output, session) {
       }
     }
     
-    fitx
+    fitx <- all_binom2num(fitx)
   })
   
-  output$view_data<-DT::renderDataTable({
-    DT::datatable(inFile_ds(),rownames = FALSE)%>%formatStyle(columns=colnames(inFile_ds()),background = 'white',color='black')
-  })
+  
+
+# View data -------------------------------------------------------------
+
+  
+  output$dto <- renderDataTable(inFile_ds(), 
+                                extensions = 'Buttons', 
+                                options = list(dom = 'Bfrtip',buttons = c('copy', 'print'),pageLength = 10)
+  )
+  
+  
+# 2-Define settings for summary statistics --------------------------------
+
+  
   
   # forcing variable
   output$col_sel_forcing7 <- renderUI({
@@ -63,44 +107,43 @@ server <- function(input, output, session) {
     cn <- colnames(inFile_ds())
     selectInput("var_covar2", "Choose variables (select 2 or more variables)", 
                 choices  = cn,
-                selected = cn,
-                size=10,
-                multiple=TRUE, selectize=FALSE)
+                selected = 1,
+                multiple=TRUE, selectize=TRUE)
   })
   
-  values <- reactiveValues()
   
-  output$table <- renderRHandsontable({
-    # print((values[["DF"]]))
-    # if (!is.null(input$hot)) {
-    #   DF = hot_to_r(input$hot)
-    # } else {
-    #   DF <- values[["DF"]]
-    # }
-    
-    
-    DF <- values[["DF"]]
-    
-    print(DF[1:5,1:5])
-    
-    signsourc <- c("=","<","<=",">",">=","sel","desel")
-    
-    if (!is.null(DF))
-      rhandsontable(DF, stretchH = "all",useTypes=TRUE) %>%
-      hot_col(col = "Sign", type = "autocomplete", source = signsourc,strict = FALSE) %>%
-      hot_col(col = "Value", type = "autocomplete", source = "",strict = FALSE)
-  })
   
-  ## Save
-  observeEvent(input$save, {
-    finalDF <- isolate(values[["DF"]])
-    outdir <- "D:\\Projects\\Causality\\Shiny001a_makingready"
-    print(outdir)
-    outfilename <- "aldatu"
-    print(file.path(outdir, sprintf("%s.rdata", outfilename)))
-    save(finalDF, file=file.path(outdir, sprintf("%s.RData", outfilename)))
-  }
-  )
+  # values <- reactiveValues()
+  # 
+  # output$table <- renderRHandsontable({
+  # 
+  #   DF <- values[["DF"]]
+  #   
+  #   print(DF[1:5,1:5])
+  #   
+  #   signsourc <- c("=","<","<=",">",">=","sel","desel")
+  #   
+  #   if (!is.null(DF))
+  #     rhandsontable(DF, stretchH = "all",useTypes=TRUE) %>%
+  #     hot_col(col = "Sign", type = "autocomplete", source = signsourc,strict = FALSE) %>%
+  #     hot_col(col = "Value", type = "autocomplete", source = "",strict = FALSE)
+  # })
+  
+  # ## Save
+  # observeEvent(input$save, {
+  #   finalDF <- isolate(values[["DF"]])
+  #   outdir <- "D:\\Projects\\Causality\\Shiny001a_makingready"
+  #   print(outdir)
+  #   outfilename <- "aldatu"
+  #   print(file.path(outdir, sprintf("%s.rdata", outfilename)))
+  #   save(finalDF, file=file.path(outdir, sprintf("%s.RData", outfilename)))
+  # }
+  # )
+  
+
+#  descriptive -----------------------------------------------------------
+
+  
   
   v7 <- reactiveValues(doPlot = FALSE)
   observeEvent(input$go_bwsel2, {
@@ -116,6 +159,7 @@ server <- function(input, output, session) {
       
     })
   })
+  
   
   
   descriptive1b <- function(){
@@ -168,10 +212,10 @@ server <- function(input, output, session) {
     
   }  
   
-  output$dto <- renderDataTable(inFile_ds(), 
-                                extensions = 'Buttons', 
-                                options = list(dom = 'Bfrtip',buttons = c('copy', 'print'),pageLength = 10)
-  )
+
+# 3-Bandwidth selection ---------------------------------------------------
+
+  
   
   output$ui_slide_range <- renderUI({
     
@@ -193,11 +237,11 @@ server <- function(input, output, session) {
     
     if(input$typerange == "perce")
     {
-      perunit <- "perce"
+      perunit <- "%"
       rangevalue = 100
       epsilon = 100
     } else {
-      perunit <- "unit"
+      perunit <- "S unit"
       
       epsilon <- ifelse(fmaxs0 >= fmins0, fmaxs0, fmins0)
       if(input$typerange == "balunit")
@@ -210,7 +254,7 @@ server <- function(input, output, session) {
     }
     
     sliderInput("bins",
-                paste0("Select the range ", perunit),
+                paste0("Select the scale in ", perunit),
                 min = 0,
                 max = epsilon,
                 step = input$stepunit,
@@ -218,14 +262,27 @@ server <- function(input, output, session) {
     
   })
   
+  
+  
   output$col_sel_covar <- renderUI({
     cn <- colnames(inFile_ds())
     selectInput("var_covar", "Choose covariates", 
                 choices  = cn,
-                selected = cn[4],
-                size=10,
-                multiple=TRUE, selectize=FALSE)
+                selected = 1,
+                multiple=TRUE, selectize=TRUE)
   })
+  
+  output$col_sel_covar7 <- renderUI({
+    cn <- colnames(inFile_ds())
+    selectInput("var_covar7", "Choose a covariate to check the distribution", 
+                choices  = cn,
+                selected = 1,
+                multiple=FALSE, selectize=TRUE)
+  })
+
+# listvalues --------------------------------------------------------------
+
+  
   
   listvalues <- reactive({
     data2 <- inFile_ds()
@@ -255,17 +312,17 @@ server <- function(input, output, session) {
     } else     {
       if(input$typerange == "balunit")
       {
-        ver1 <- cut - input$bins
-        ver2 <- cut  + input$bins
+        ver1 <- cut - input$bins/2
+        ver2 <- cut  + input$bins/2
       } else if(input$typerange == "unbalunit")
       {
-        ver1 <- cut - input$bins[1]
-        ver2 <- cut  + input$bins[2]
+        ver1 <- cut - input$bins[1]/2
+        ver2 <- cut  + input$bins[2]/2
       }
       
     }
     
-    lista <- list(data2, ver1, ver2)
+    lista <- list(ver1, ver2)
   })
   
   v2 <- reactiveValues(doPlot = FALSE)
@@ -277,15 +334,20 @@ server <- function(input, output, session) {
   
   plotInputhist = function() {
     listb <- listvalues()
-    data2 <- data.frame(listb[[1]])
-    ver1 <- listb[[2]]
-    ver2 <- listb[[3]]
+    data2 <- inFile_ds()
+    ver1 <- listb[[1]]
+    ver2 <- listb[[2]]
     
     print(ver1)
     print(ver2)
     
     forcingvalues <- as.vector(data2[,input$var_forcing7])
     print(head(forcingvalues))
+    
+    data2 <- data.frame(forcingvalues, data2)
+    names(data2)[1] <- "forcingvalues"
+    
+    # browser()
     
     ggplot(data2, aes(x=forcingvalues)) + 
       geom_histogram(aes(y=..density..), colour="black", fill="deepskyblue3")+
@@ -305,103 +367,15 @@ server <- function(input, output, session) {
     })
   })
   
-  output$summary <- renderTable({
-    
-    if (v2$doPlot == FALSE) return()
-    
-    isolate({
-      listb <- listvalues()
-      data2 <- data.frame(listb[[1]])
-      ver1 <- listb[[2]]
-      ver2 <- listb[[3]]
-      
-      forcingvar <- as.vector(data2[,input$var_forcing7])
-      
-      # filtering the table with new data
-      
-      data3 <- data2[forcingvar >= ver1 & forcingvar <= ver2, ]
-      forcingvar2 <- data3[,input$var_forcing7]
-      bek <- as.numeric(ifelse(forcingvar2 <= input$cutvalue2,0,1))
-      # save.image("20171212_mit.RData")
-      
-      fmin <- min(forcingvar2,na.rm = TRUE)
-      print((fmin))
-      fmax <- max(forcingvar2,na.rm = TRUE)
-      print((fmax))
-      
-      print(head(bek))
-      
-      lencov <- length(input$var_covar)
-      print(lencov)
-      # bek <- contreat()
-      
-      if(lencov == 1)
-      {
-        df <- data.frame(matrix(888,1,9))
-        names(df) <- c("Length","lim1", "lim2", "Covariate","Difference","Adj pvalue","CovariateIni","Initial Difference","Initial Adj pvalue")
-        
-        get <- LRErdd::rd_pvalue (dataset = data3, covariate = input$var_covar, CT = bek,Nsim = input$nsim, cutvar = input$cutvalue2,
-                                  low_lim = ver1, high_lim = ver2)
-        
-        get2 <- LRErdd::rd_pvalue (dataset = data2, covariate = input$var_covar, CT = bek,Nsim = input$nsim, cutvar = input$cutvalue2,
-                                   low_lim = fmin, high_lim = fmax)
-        
-        print(get)
-        
-        df[1,1]<-get[[2]]
-        df[1,2]<-ver1
-        df[1,3]<-ver2
-        df[1,4]<-get[[3]]
-        df[1,5]<-get[[4]]
-        df[1,6]<-get[[1]]
-        
-        df[1,7]<-get2[[3]]
-        df[1,8]<-get2[[4]]
-        df[1,9]<-get2[[1]]
-        
-      } else if(lencov > 1)
-      {
-        df <- data.frame(matrix(888,lencov,9))
-        names(df) <- c("Length","lim1", "lim2", "Covariate","Difference","Adj pvalue","CovariateIni","Initial Difference","Initial Adj pvalue")
-        
-        covv <- input$var_covar
-        
-        for(g in 1:lencov)
-        {
-          get <- LRErdd::rd_pvalue (dataset = data3, covariate = covv[g], CT = bek,Nsim = input$nsim, cutvar = input$cutvalue2,
-                                    low_lim = ver1, high_lim = ver2)
-          
-          get2 <- LRErdd::rd_pvalue (dataset = data2, covariate = covv[g], CT = bek,Nsim = input$nsim, cutvar = input$cutvalue2,
-                                     low_lim = fmin, high_lim = fmax)
-          
-          df[g,1]<-get[[2]]
-          df[g,2]<-ver1
-          df[g,3]<-ver2
-          df[g,4]<-get[[3]]
-          df[g,5]<-get[[4]]
-          df[g,6]<-get[[1]]
-          
-          df[g,7]<-get2[[3]]
-          df[g,8]<-get2[[4]]
-          df[g,9]<-get2[[1]]
-        }
-      }
-      
-      df[,c(4,8,9,5,6)]
-      
-    })
-    
-  })
-  
   output$summarydim <- renderTable({
     
     if (v2$doPlot == FALSE) return()
     
     isolate({
       listb <- listvalues()
-      data2 <- listb[[1]]
-      ver1 <- listb[[2]]
-      ver2 <- listb[[3]]
+      data2 <- inFile_ds()
+      ver1 <- listb[[1]]
+      ver2 <- listb[[2]]
       
       forcingvar <- data2[,input$var_forcing7]
       
@@ -417,6 +391,163 @@ server <- function(input, output, session) {
     
   })
   
+  output$summary <- renderTable({
+    
+    if (v2$doPlot == FALSE) return()
+    
+    isolate({
+      listb <- listvalues()
+      data2 <- inFile_ds()
+      ver1 <- listb[[1]]
+      ver2 <- listb[[2]]
+      
+      print(paste0("ver1: ", ver1))
+      print(paste0("ver2: ", ver2))
+      print(paste0("data2: ", dim(data2)))
+      
+      forcingvar <- as.vector(data2[,input$var_forcing7])
+      
+      # filtering the table with new data
+      
+      data3 <- data2[forcingvar >= ver1 & forcingvar <= ver2, ]
+      print(paste0("data3: ", dim(data3)))
+      forcingvar2 <- data3[,input$var_forcing7]
+      bek <- as.numeric(ifelse(forcingvar2 <= input$cutvalue2,0,1))
+      # save.image("20171212_mit.RData")
+      
+      fmin <- min(forcingvar2,na.rm = TRUE)
+      # print((fmin))
+      print(paste0("fmin: ", fmin))
+      fmax <- max(forcingvar2,na.rm = TRUE)
+      # print((fmax))
+      print(paste0("fmax: ", fmax))
+      
+      maxmax <- ifelse(fmin > fmax, fmin, fmax)
+      bbw <- (ver2 - ver1)/2
+      
+      # print(head(bek))
+      print("bek")
+      print(head(bek))
+      
+      whichunder <- ifelse(input$onezero2=="under1",1,0)
+      
+      lencov <- length(input$var_covar)
+      # print(lencov)
+      print(paste0("fmax: ", fmax))
+      # bek <- contreat()
+      
+      set.seed(27)
+      
+      if(lencov == 1)
+      {
+        df <- data.frame(matrix(888,1,5))
+        names(df) <- c("Covariate","Initial Pvalue","Initial Adj pvalue","Bandwidth specific Pvalue","Bandwidth specific Adj pvalue")
+        
+        
+        # rand_pajd(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, 
+        #           niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, whichunder = whichunder)
+        
+        # print(dim(data3))
+        print(paste0("data3: ", data3))
+        # print(input$var_forcing7)
+        print(paste0("input$var_forcing7: ", input$var_forcing7))
+        # print(input$var_covar)
+        print(paste0("input$var_covar: ", input$var_covar))
+        # print(input$nsim)
+        print(paste0("input$nsim: ", input$nsim))
+        # print(input$cutvalue2)
+        print(paste0("input$cutvalue2: ", input$cutvalue2))
+        # print(whichunder)
+        print(paste0("whichunder: ", whichunder))
+        # print(ver1)
+        print(paste0("ver1: ", ver1))
+        # print(ver2)
+        print(paste0("ver2: ", ver2))
+        # print(bbw)
+        print(paste0("bbw: ", bbw))
+        
+        
+        if(dim(data2)==dim(data3))
+        {
+          get <- LRErdd::rand_pajd (dataset = data3, forcing_var_name = input$var_forcing7, covariate = input$var_covar, niter = input$nsim,
+                                    cut_value = input$cutvalue2, whichunder = whichunder, bandwidth = bbw)
+
+          get2 <- get
+        } else {
+          get <- LRErdd::rand_pajd (dataset = data3, forcing_var_name = input$var_forcing7, covariate = input$var_covar, niter = input$nsim,
+                                    cut_value = input$cutvalue2, whichunder = whichunder, bandwidth = bbw)
+
+          get2 <- LRErdd::rand_pajd (dataset = data2, forcing_var_name = input$var_forcing7, covariate = input$var_covar, niter = input$nsim, 
+                                     cut_value = input$cutvalue2, whichunder = whichunder, bandwidth = maxmax)
+        }
+        
+        
+        print(get)
+        
+        df[1,1]<-input$var_covar
+        df[1,2]<-get2[,2]
+        df[1,3]<-get2[,3]
+        df[1,4]<-get[,2]
+        df[1,5]<-get[,3]
+
+        
+      } else if(lencov > 1)
+      {
+        df <- data.frame(matrix(888,lencov,5))
+        names(df) <- c("Covariate","Initial Pvalue","Initial Adj pvalue","Bandwidth specific Pvalue","Bandwidth specific Adj pvalue")
+        
+        covv <- input$var_covar
+        
+        print(dim(data3))
+        print(input$var_forcing7)
+        print(input$var_covar)
+        print(input$cutvalue2)
+        print(whichunder)
+        print(bbw)
+        print(covv)
+        
+        
+        
+        # for(g in 1:lencov)
+        # {
+        #  print(g) 
+        if(dim(data2)==dim(data3))
+        {
+          get <- LRErdd::rand_pajd (dataset = data3, forcing_var_name = input$var_forcing7, covariate = covv, niter = input$nsim, 
+                                    cut_value = input$cutvalue2, whichunder = whichunder, bandwidth = bbw)
+          print(get)
+          get2 <- get
+          print(get2)
+        } else {
+          get <- LRErdd::rand_pajd (dataset = data3, forcing_var_name = input$var_forcing7, covariate = covv, niter = input$nsim, 
+                                    cut_value = input$cutvalue2, whichunder = whichunder, bandwidth = bbw)
+          print(get)
+          get2 <- LRErdd::rand_pajd (dataset = data2, forcing_var_name = input$var_forcing7, covariate = covv, niter = input$nsim, 
+                                     cut_value = input$cutvalue2, whichunder = whichunder, bandwidth = maxmax)
+          print(get2)
+        }
+  
+          
+          # df[g,1]<-input$var_covar[g]
+          # df[g,2]<-get2[,2]
+          # df[g,3]<-get2[,3]
+          # df[g,4]<-get[,2]
+          # df[g,5]<-get[,3]
+          
+          df <- data.frame(get2,get)
+          df <- df[,-4]
+          names(df) <- c("Variable","Initial Pvalue","Initial Adj pvalue","Bandwidth specific Pvalue","Bandwidth specific Adj pvalue")
+        # }
+      }
+      
+      df
+      
+    })
+    
+  })
+  
+  
+  
   v <- reactiveValues(doPlot = FALSE)
   
   observeEvent(input$go2, {
@@ -430,9 +561,9 @@ server <- function(input, output, session) {
       dataori <- inFile_ds()
       
       listb <- listvalues()
-      data2 <- data.frame(listb[[1]])
-      ver1 <- listb[[2]]
-      ver2 <- listb[[3]]
+      data2 <- inFile_ds()
+      ver1 <- listb[[1]]
+      ver2 <- listb[[2]]
       
       forcori <- dataori[,input$var_forcing7]
       
@@ -546,21 +677,18 @@ server <- function(input, output, session) {
     })
   })
   
-  output$col_sel_covar7 <- renderUI({
-    cn <- colnames(inFile_ds())
-    selectInput("var_covar7", "Choose a covariate to check the distribution", 
-                choices  = cn,
-                selected = 1,
-                multiple=FALSE, selectize=TRUE)
-  })
+  
+
+# 4-Summary bandwidth selection -------------------------------------------
+
+  
   
   output$col_sel_covar_covar9<- renderUI({
     cn <- colnames(inFile_ds())
     selectInput("var_covarCovar9", "Choose the covariates", 
                 choices  = cn,
-                selected = cn[1:2],
-                size=10,
-                multiple=TRUE, selectize=FALSE)
+                selected = 1,
+                multiple=TRUE, selectize=TRUE)
   })
   
   v9 <- reactiveValues(doPlot = FALSE)
@@ -571,7 +699,7 @@ server <- function(input, output, session) {
   taula9 <- reactive({
     
     if (v9$doPlot == FALSE) return()
-    
+    # browser()
     isolate({
       
       data2 <- inFile_ds()
@@ -580,7 +708,7 @@ server <- function(input, output, session) {
       
       withProgress(message = 'Making analyses', value = 0, {
         
-        taula <- LRErdd::sharp_FEP_adj_bw (dataset = data2, forcing_var_name =input$var_forcing7, covariates = input$var_covarCovar9,
+        taula <- LRErdd::rand_pajd_bw (dataset = data2, forcing_var_name =input$var_forcing7, covariates = input$var_covarCovar9,
                                            niter=input$niter9, bandwidth = bw3, cut_value = input$cutvalue2, whichunder = whichunder2)
       })
     })
@@ -591,6 +719,19 @@ server <- function(input, output, session) {
   output$tablemethod9 <- renderDataTable({
     taula9()
   })
+  
+
+# 5-Inference on causal effects -------------------------------------------
+
+  output$col_sel_covar_Y <- renderUI({
+    cn <- colnames(inFile_ds())
+    selectInput("var_covarY", "Choose outcome variable", 
+                choices  = cn,
+                selected = cn[3],
+                multiple=FALSE, selectize=TRUE)
+  })
+  
+  
   
   output$col_sel_covar_W <- renderUI({
     cn <- colnames(inFile_ds())
@@ -609,25 +750,8 @@ server <- function(input, output, session) {
   })
   
   
-  output$col_sel_covar_Y <- renderUI({
-    cn <- colnames(inFile_ds())
-    selectInput("var_covarY", "Choose outcome variable", 
-                choices  = cn,
-                selected = cn[3],
-                multiple=FALSE, selectize=TRUE)
-  })
-  
-  # output$col_sel_covar_covar<- renderUI({
-  #   cn <- colnames(inFile_ds())
-  #   selectInput("var_covarCovar", "Choose the covariates", 
-  #               choices  = cn,
-  #               selected = cn[1:2],
-  #               size=10,
-  #               multiple=TRUE, selectize=FALSE)
-  # })
-  
   output$tablemethod <- renderDataTable({
-    taula()
+    taula_post()
   })
   
   # method button
@@ -651,16 +775,42 @@ server <- function(input, output, session) {
     v_fuzzy_neyman$doPlot <- input$go_fuzzy_neyman
   })
   
-  
-  # v3 <- reactiveValues(doPlot = FALSE)
-  # observeEvent(input$go, {
-  #   v3$doPlot <- input$go
-  # })
+
+#  Taula ------------------------------------------------------------------
+
+  taula_post <- reactive({
+    
+    if (!(v_sharp_fep$doPlot == TRUE | v_sharp_neyman$doPlot == TRUE | v_fuzzy_fep$doPlot == TRUE | v_fuzzy_neyman$doPlot == TRUE) ) return()
+    # browser()
+    isolate({
+      
+      tau3 <- taula()
+      # cin3 <- as.numeric(as.character(input$cin))
+      
+      withProgress(message = 'Making analyses', value = 0, {
+        
+        if(input$select_effect == 'Sharp FEP')
+        {
+          
+          tau3 <- tau3$df
+          
+        }
+
+        if(input$select_effect == 'Fuzzy FEP')
+        {
+          # browser()
+          tau3 <- tau3[[1]]
+        }
+      })
+    })
+    print(tau3)
+    
+  })
   
   taula <- reactive({
     
     if (!(v_sharp_fep$doPlot == TRUE | v_sharp_neyman$doPlot == TRUE | v_fuzzy_fep$doPlot == TRUE | v_fuzzy_neyman$doPlot == TRUE) ) return()
-    
+    # browser()
     isolate({
       
       data2 <- data.frame(inFile_ds())
@@ -673,27 +823,27 @@ server <- function(input, output, session) {
       
       withProgress(message = 'Making analyses', value = 0, {
         
-        if(input$sel_method == 'FEPRDis')
+        if(input$select_effect == 'Sharp FEP')
         {
-          taula <- LRErdd::fep_values (dataset = data2, forcing_var_name =input$var_forcing7, Y_name =input$var_covarY, niter=input$niter,
+          taula <- LRErdd::sharp_fep_bw (dataset = data2, forcing_var_name =input$var_forcing7, Y_name =input$var_covarY, niter=input$niter,
                                        bandwidth = bw3, cut_value = input$cutvalue2, whichunder = whichunder2)
         }
         
-        if(input$sel_method == 'sharpNeyman')
+        if(input$select_effect == 'Sharp Neyman')
         {
           
           taula <- LRErdd::sharp_neyman_bw (dataset = data2,forcing_var_name =input$var_forcing7,Y_name =input$var_covarY,niter=input$niter,
                                             bandwidth = bw3, cut_value = input$cutvalue2, whichunder = whichunder2, cin = cin3)
         }
         
-        if(input$sel_method == 'fuzzyNeyman')
+        if(input$select_effect == 'Fuzzy Neyman')
         {
           taula <- LRErdd::fuzzy_neyman_bw (dataset = data2,forcing_var_name =input$var_forcing7,Y_name =input$var_covarY,niter=input$niter,
                                             W = input$var_covarW_neyman, bandwidth = bw3, cut_value = input$cutvalue2, 
                                             whichunder = whichunder2, cin = cin3)
         }
         
-        if(input$sel_method == 'fuzzyFEP')
+        if(input$select_effect == 'Fuzzy FEP')
         {
           
           incProgress(1/2, detail = "Be patient")
@@ -711,6 +861,8 @@ server <- function(input, output, session) {
               }
               
               dat2b <- data2[,input$var_covarW]
+              
+              # condition Z=0, W=0
               data2[,input$var_covarW] <- ifelse(assigVar2 == 0, 0, data2[,input$var_covarW])
               
               
@@ -736,7 +888,10 @@ server <- function(input, output, session) {
               print(M2)
               print(whichunder)
               
+              print(table(data2[,forcing_var_name],data2[,input$var_covarY]))
+              print(table(data2[,forcing_var_name],data2[,input$var_covarW]))
               
+              # browser()
               
               taula <- LRErdd::fuzzy_fep_bw (dataset = data2,forcing_var_name =input$var_forcing7,Y_name =input$var_covarY,niter=input$niter,
                                              W = input$var_covarW,typemod = "binary",typesided = "onesided",
@@ -777,7 +932,7 @@ server <- function(input, output, session) {
                                              bandwidth = bw3, cut_value = input$cutvalue2, M2 = input$M2, whichunder = whichunder2)
             }
           }
-          taula <- taula[[1]]
+          taula <- taula
         }
       })
     })
@@ -791,6 +946,9 @@ server <- function(input, output, session) {
   # })
   
   
+
+# Plot --------------------------------------------------------------------
+
   
   output$plotres <- renderPlot({
     
@@ -799,74 +957,242 @@ server <- function(input, output, session) {
     isolate({
       
       tt <- taula()
-      
+      # browser()
       print(head(tt))
+      # browser()
       
-      if(input$sel_method%in%c("sharpNeyman","fuzzyNeyman"))
+      if(input$select_effect%in%c("Sharp Neyman","Fuzzy Neyman"))
       {
         names(tt)[c(3,5,6)] <- c("ACE","L","U")
         
-        if(input$sel_method%in%c("sharpNeyman"))
+        if(input$select_effect%in%c("Sharp Neyman"))
         {
-          ggplot(tt, aes(x = Bandwith, y = ACE)) +
+          ggplot(tt, aes(x = Bandwidth, y = ACE)) +
             geom_point(size = 4) +
-            geom_errorbar(aes(ymax = U, ymin = L))+ geom_hline(yintercept = 0,col= "red")
+            geom_errorbar(data = tt, aes(x = Bandwidth, ymax = U, ymin = L), width = 0.5, size =1) + geom_hline(yintercept = 0,col= "red")
           
-        } else if(input$sel_method%in%c("fuzzyNeyman"))
+        } else if(input$select_effect%in%c("Fuzzy Neyman"))
         {
-          ggplot(tt, aes(x = Bandwith, y = ACE)) +
+          ggplot(tt, aes(x = Bandwidth, y = ACE)) +
             geom_point(size = 4) +
-            geom_errorbar(aes(ymax = U, ymin = L)) + facet_grid(.~Estimand)+ geom_hline(yintercept = 0,col= "red")
+            geom_errorbar(data = tt, aes(x = Bandwidth, ymax = U, ymin = L),width=0.5, size =1) + facet_grid(.~Estimand)+ geom_hline(yintercept = 0,col= "red")
         }
         
-      } else  if(input$sel_method%in%c("FEPRDis","fuzzyFEP"))
+      } else  if(input$select_effect%in%c("Sharp FEP","Fuzzy FEP"))
       {
         
-        if(input$sel_method%in%c("FEPRDis"))
+        if(input$select_effect%in%c("Sharp FEP"))
         {
-          names(tt)[c(1,3,5)] <- c("Bandwith","Dif","Pvalue")
-          kol <- ifelse(tt[,"Pvalue"]<0.05,"blue","red")
-          ggplot(tt, aes(x = Bandwith, y = Dif)) +
-            geom_point(size = 4,col=kol) +
-            geom_hline(yintercept = 0,col= "red")
+          # names(tt)[c(1,3,5)] <- c("Bandwidth","Dif","Pvalue")
+          # kol <- ifelse(tt[,"Pvalue"]<0.05,"blue","red")
+          # ggplot(tt, aes(x = Bandwidth, y = Dif)) +
+          #   geom_point(size = 4,col=kol) +
+          #   geom_hline(yintercept = 0,col= "red")
           
-        } else if(input$sel_method%in%c("fuzzyFEP"))
-        {
-          
-          data2 <- inFile_ds()
-          bw3 <-  as.numeric(as.character(unlist(strsplit(input$bandwidths, ","))))
-          whichunder2 <- ifelse(input$onezero2=="under1",1,0)
-          
-          # 
-          # if(input$sel_method == 'fuzzyFEP')
-          # {
-          
-          if(input$typemod=="binary")
+          l3 <- length(tt$hist_data)
+          l4 <- length(tt$hist_data[[1]])
+          ve <- 0
+          ge <- "k"
+          obs <- 0
+          for(h in 1:l3)
           {
-            
-            # taula <- LRErdd::fuzzy_fep_bw (dataset = data2,forcing_var_name =input$var_forcing7,Y_name =input$var_covarY,niter=input$niter,
-            #                                W = input$var_covarW,typemod = "binary",
-            #                                bandwidth = bw3, cut_value = input$cutvalue2, M2 = input$M2, whichunder = whichunder2)
-            
-            tt
-            # hist(taula[[2]])
-            
-          } else if(input$typemod=="cont")
-          {
-            
-            # taula <- LRErdd::fuzzy_fep_bw (dataset = data2,forcing_var_name =input$var_forcing7,Y_name =input$var_covarY,niter=input$niter,
-            #                                W = input$var_covarW_neyman,typemod = "numeric",
-            #                                bandwidth = bw3, cut_value = input$cutvalue2, M2 = input$M2, whichunder = whichunder2)
-            tt
-            # hist(taula[[2]])
-            
+            ve <- c(ve,tt$hist_data[[h]])
+            ge <- c(ge,rep(tt$df[h,1],l4))
+            obs <- c(obs,rep(tt$df[h,4],l4))
           }
-          # }
+          ve <- ve[-1]
+          ge <- ge[-1]
+          obs <- obs[-1]
+          
+          # browser()
+          
+          dfg <- data.frame(ge,ve,obs)
+          dfg$ge <- as.numeric(as.character(dfg$ge))
+          dfg <- dfg[order(dfg$ge),]
+          # browser()
+          ggplot(dfg, aes(x=ve))+
+            geom_histogram(color="black", fill="white")+
+            facet_grid(. ~ ge) + geom_vline(aes(xintercept=obs, color="red"),linetype="dashed")
+          
+        } else if(input$select_effect%in%c("Fuzzy FEP"))
+        {
+          
+          l3 <- length(tt[[2]][,1])/3 # number of sim
+          l4 <- length(tt[[1]][,1]) #number of bandwidth
+          ve <- 0
+          ge <- "k"
+          obs <- 0
+          izen <- "K"
+          # izen2 <- "k"
+          
+          ve <- c(ve,tt[[2]][,1],tt[[2]][,2],tt[[2]][,3]) # simulated data
+          
+          for(h in 1:l4)
+          {
+            # for(t in 1:l3)
+            # {
+              
+              ge <- c(ge,rep(tt[[1]][h,1],l3*3))  # bandwidth
+              izen <- c(izen,rep("CACE.IV",l3),rep("CACE.MLE",l3),rep("CACE.PM",l3)) # test
+              # izen2 <- c(izen2,rep("CACE.IV",l3),rep("CACE.MLE",l3),rep("CACE.PM",l3))
+              obs <- c(obs,rep(tt[[3]][h,1],l3), rep(tt[[3]][h,2],l3), rep(tt[[3]][h,3],l3))
+            # }
+           
+          }
+          ve <- ve[-1]
+          ge <- ge[-1]
+          obs <- obs[-1]
+          izen <- izen[-1]
+          
+          # browser()
+          
+          dfg <- data.frame(ge,ve,obs,izen)
+          dfg$ge <- as.numeric(as.character(dfg$ge))
+          dfg <- dfg[order(dfg$ge),]
+
+          ggplot(dfg, aes(x=ve))+
+            geom_histogram(color="black", fill="white")+
+            facet_grid(izen ~ ge) + geom_vline(aes(xintercept=obs, color="red"),linetype="dashed")
         }
       }
       
     })
     
   })
+  
+
+# 6-Hiding ------------------------------------------------------------------
+
+  observeEvent(input$go_intro, {
+    showTab(inputId = "tabs", target = "Instructions")
+    hideTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    hideTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go_default_dataset, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    showTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    hideTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go_excel, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    showTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    hideTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go_rdata, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    showTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    hideTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go_bwsel2, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    hideTab(inputId = "tabs", target = "1-Your Data")
+    showTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    hideTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go_bwsel, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    hideTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    showTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    hideTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go2, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    hideTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    showTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    hideTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go9, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    hideTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    showTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    hideTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go5, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    hideTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    showTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go_sharp_fep, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    hideTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    showTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go_sharp_neyman, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    hideTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    showTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  observeEvent(input$go_fuzzy_fep, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    hideTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    showTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+  
+  
+  observeEvent(input$go_fuzzy_neyman, {
+    hideTab(inputId = "tabs", target = "Instructions")
+    hideTab(inputId = "tabs", target = "1-Your Data")
+    hideTab(inputId = "tabs", target = "2-Summary statistics")
+    hideTab(inputId = "tabs", target = "3-Bandwidth selection")
+    hideTab(inputId = "tabs", target = "4-Summary Bandwidth selection")
+    showTab(inputId = "tabs", target = "5-Inference on causal effects")
+    
+  })
+
   
 }
