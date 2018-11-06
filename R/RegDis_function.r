@@ -579,7 +579,7 @@ fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
         dfp <- data.frame(matrix(ft, ncol = 4))
         dfp[, 1:4] <- round(dfp[, 1:4], 4)
         
-        df <- cbind(rep(h, 3), c("ITT.W", "ITT.Y", "CACE"), dfp)
+        df <- cbind(rep(bandwidth[b], 3), c("ITT.W", "ITT.Y", "CACE"), dfp)
         names(df) <- c("Bandwidth", "Estimand", "Average causal effect", "Neyman SE", paste0(cin, "% CI: Lower bound"), paste0(cin, "% CI: upper bound"))
         # names(df) <- c('Bandwidth','N','Average causal effect','Neyman SE',paste0(cin,'% CI: Lower bound'),paste0(cin,'% CI: upper bound'))
         df2 <- rbind(df2, df)
