@@ -14,27 +14,29 @@ library(raster)
 library(openxlsx)
 library(gtools)
 
+options(shiny.reactlog=TRUE)
+
 # source("AdjTP_plotly.R")
 # dashboardPage(skin = "black")
 ## Step 1. UI - basic part of shiny app
 ui <- dashboardPage(skin = "blue",
-                    dashboardHeader(title = "LRErdd v0.06_seed27_20181029", titleWidth = 450),
+                    dashboardHeader(title = "LRErdd v0.10_seed27_20181107", titleWidth = 450),
                     dashboardSidebar(width = 350,
                                      tags$head(tags$script(HTML("
-                                        Shiny.addCustomMessageHandler('manipulateMenuItem', function(message){
-                                          var aNodeList = document.getElementsByTagName('a');
-                                  
-                                          for (var i = 0; i < aNodeList.length; i++) {
-                                            if(aNodeList[i].getAttribute('data-value') == message.tabName) {
-                                              if(message.action == 'hide'){
-                                                aNodeList[i].setAttribute('style', 'display: none;');
-                                              } else {
-                                                aNodeList[i].setAttribute('style', 'display: block;');
-                                              };
-                                            };
-                                          }
-                                        });
-                                      "))),
+                                                                Shiny.addCustomMessageHandler('manipulateMenuItem', function(message){
+                                                                var aNodeList = document.getElementsByTagName('a');
+                                                                
+                                                                for (var i = 0; i < aNodeList.length; i++) {
+                                                                if(aNodeList[i].getAttribute('data-value') == message.tabName) {
+                                                                if(message.action == 'hide'){
+                                                                aNodeList[i].setAttribute('style', 'display: none;');
+                                                                } else {
+                                                                aNodeList[i].setAttribute('style', 'display: block;');
+                                                                };
+                                                                };
+                                                                }
+                                                                });
+                                                                "))),
                                      tags$head(tags$style(HTML(' .skin-blue .sidebar-menu .treeview-menu> li.active > a,
                                                                .skin-blue .sidebar-menu .treeview-menu> li:hover > a {
                                                                color: #8aa4af;
@@ -62,23 +64,23 @@ ui <- dashboardPage(skin = "blue",
                                        tags$script(
                                          HTML(
                                            "
-                                              $(document).ready(function(){
-                                                // Bind classes to menu items, easiet to fill in manually
-                                                var ids = ['bostinfer','5a','5b','5c','5d'];
-                                                for(i=0; i<ids.length; i++){
-                                                  $('a[data-value='+ids[i]+']').addClass('my_subitem_class');
-                                                }
-                                      
-                                                // Register click handeler
-                                                $('.my_subitem_class').on('click',function(){
-                                                  // Unactive menuSubItems
-                                                  $('.my_subitem_class').parent().removeClass('active');
-                                                })
-                                              })
-                                              "
-                                           )
+                                           $(document).ready(function(){
+                                           // Bind classes to menu items, easiet to fill in manually
+                                           var ids = ['bostinfer','5a','5b','5c','5d','tab_loadoriginal','tab_loadexcel','tab_loadrdata'];
+                                           for(i=0; i<ids.length; i++){
+                                           $('a[data-value='+ids[i]+']').addClass('my_subitem_class');
+                                           }
+                                           
+                                           // Register click handeler
+                                           $('.my_subitem_class').on('click',function(){
+                                           // Unactive menuSubItems
+                                           $('.my_subitem_class').parent().removeClass('active');
+                                           })
+                                           })
+                                           "
+                                         )
                                        )
-                                     ),
+                                       ),
                                      tags$style(".fa-table {color:#33cc33}"),     
                                      tags$style(".table2 {color:#0099ff}"),     
                                      
@@ -101,7 +103,7 @@ ui <- dashboardPage(skin = "blue",
                                                  conditionalPanel(
                                                    condition = "input.select_main == '1-Source: default dataset'",
                                                    sidebarMenu(
-                                                     menuSubItem(actionButton("go_default_dataset", "Data"),icon = NULL)
+                                                     menuSubItem(actionButton("go_default_dataset", "Data"),icon = NULL,tabName = "tab_loadoriginal", )
                                                      
                                                    ) # sidebarmenu
                                                  ), # conditional
@@ -109,18 +111,18 @@ ui <- dashboardPage(skin = "blue",
                                                  conditionalPanel(
                                                    condition = "input.select_main == '1-Source: excel'",
                                                    sidebarMenu(id = "allcitiestogether",
-                                                               menuItem("1A-Load Excel file", icon = icon("table"),
+                                                               menuItem("1A-Load Excel file", icon = icon("table"), tabName = "tab_loadexcel", 
                                                                         menuSubItem(fileInput("excelfile", 
                                                                                               "Upload Excel file", 
                                                                                               accept=c('.xls', 
                                                                                                        '.xlsx')),
                                                                                     icon = NULL),
-                                                                # update dropdown for outcome + treatment selection when file is uploaded
-                                                                menuSubItem(numericInput('excel_sheetnumber', 'Select the sheet number', 1),icon = NULL),
-                                                                menuSubItem(numericInput('excel_startrow', 'Select the start row number', 1),icon = NULL),
-                                                                menuSubItem(textInput('excel_stringNA', 'Write the missing strings', "NA"),icon = NULL),
-                                                                menuSubItem(actionButton("go_excel", "Run"),icon = NULL)
-   
+                                                                        # update dropdown for outcome + treatment selection when file is uploaded
+                                                                        menuSubItem(numericInput('excel_sheetnumber', 'Select the sheet number', 1),icon = NULL),
+                                                                        menuSubItem(numericInput('excel_startrow', 'Select the start row number', 1),icon = NULL),
+                                                                        menuSubItem(textInput('excel_stringNA', 'Write the missing strings', "NA"),icon = NULL),
+                                                                        menuSubItem(actionButton("go_excel", "Run"),icon = NULL)
+                                                                        
                                                                )
                                                    ) # sidebarmenu
                                                  ), # conditional
@@ -129,7 +131,7 @@ ui <- dashboardPage(skin = "blue",
                                                    condition = "input.select_main == '1-Source: RData'",
                                                    sidebarMenu(id = "selRData",
                                                                # tags$style(".fa-table {color:#ff3399}"),             
-                                                               menuItem("1B-Load R file", icon = icon("table",class="table2"),
+                                                               menuItem("1B-Load R file", icon = icon("table",class="table2"),tabName = "tab_loadrdata", 
                                                                         menuSubItem(fileInput("rdatafile", 
                                                                                               "Upload R file", 
                                                                                               accept=c('.rdata', '.RData',
@@ -154,7 +156,7 @@ ui <- dashboardPage(skin = "blue",
                                                                )
                                                    ) # sidebarmenu
                                                  ), # conditional
-
+                                                 
                                                  conditionalPanel(
                                                    condition = "input.select_main == '2-Summary statistics'",
                                                    sidebarMenu(id = "selRData",
@@ -231,7 +233,7 @@ ui <- dashboardPage(skin = "blue",
                                                                         # menuSubItem(actionButton("go_sharp_fep", "Run Analysis"),icon = NULL)
                                                                ),
                                                                
-
+                                                               
                                                                
                                                                conditionalPanel(
                                                                  condition = "input.select_effect == 'Sharp FEP'",
@@ -241,6 +243,7 @@ ui <- dashboardPage(skin = "blue",
                                                                                       #              c('Sharp RDD: FEP approach'='FEPRDis'),'FEPRDis'),
                                                                                       p("---"),
                                                                                       actionButton("go_sharp_fep", "Run Analysis")
+                                                                                      # actionButton("go_bostak", "Run Analysis")
                                                                              )
                                                                  ) # sidebarmenu
                                                                ), # conditional
@@ -253,6 +256,7 @@ ui <- dashboardPage(skin = "blue",
                                                                                       #              c('Sharp RDD: Neyman approach' = 'sharpNeyman'),'sharpNeyman'),
                                                                                       textInput("cin", "Select the alpha level", 0.05),
                                                                                       actionButton("go_sharp_neyman", "Run Analysis")
+                                                                                      # actionButton("go_bostak", "Run Analysis")
                                                                              )
                                                                  ) # sidebarmenu
                                                                ), # conditional
@@ -270,6 +274,7 @@ ui <- dashboardPage(skin = "blue",
                                                                                       uiOutput("col_sel_covar_W"),
                                                                                       helpText("Note: Fuzzy FEP take very long time. Be patient"),
                                                                                       actionButton("go_fuzzy_fep", "Run Analysis")
+                                                                                      # actionButton("go_bostak", "Run Analysis")
                                                                              )
                                                                  ) # sidebarmenu
                                                                ), # conditional
@@ -282,16 +287,17 @@ ui <- dashboardPage(skin = "blue",
                                                                                       #              c('Fuzzy RDD: Neyman approach' = 'fuzzyNeyman'),'fuzzyNeyman'),
                                                                                       uiOutput("col_sel_covar_W_neyman"),
                                                                                       actionButton("go_fuzzy_neyman", "Run Analysis")
+                                                                                      # actionButton("go_bostak", "Run Analysis")
                                                                              )
                                                                  ) # sidebarmenu
                                                                ) # conditional
-                                                              
+                                                               
                                                                
                                                    ) # sidebarmenu
                                                  ) # conditional
-                                                
-                                           ) # sidebarMenu
-                                     ), # dashboardSidebar
+                                                 
+                                     ) # sidebarMenu
+                                       ), # dashboardSidebar
                     
                     
                     dashboardBody(    
@@ -357,8 +363,8 @@ ui <- dashboardPage(skin = "blue",
                                                      In all the cases the user should select the method, the bandwidths, if the outcome is binary or continuous, choose the outcome and the number of iterations.
                                                      "))
                                                
-                                               ) # fluidRow
-                                      ),   # tabPanel
+                                                   ) # fluidRow
+                                               ),   # tabPanel
                              
                              tabPanel("1-Your Data", 
                                       fluidRow(
@@ -444,17 +450,17 @@ ui <- dashboardPage(skin = "blue",
                                             collapsible = TRUE,
                                             # div(style = 'overflow-x: scroll', rHandsontableOutput('table'))
                                             
-                                            h4("Summary"),
+                                            # h4("Summary"),
                                             dataTableOutput("tablemethod")
                                         ),
                                         box(width = 6,
                                             status = "primary", 
                                             solidHeader = TRUE,
                                             collapsible = TRUE,
-                                            h4("Plots"),
+                                            # h4("Plots"),
                                             plotOutput("plotres"))
                                       )
-                                      )   # tabBox
-                )
-          )
-)
+                             )   # tabBox
+                                               )
+                                               )
+                                                   )

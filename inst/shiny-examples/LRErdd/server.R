@@ -48,6 +48,8 @@ server <- function(input, output, session) {
     fitx <- source_data("https://github.com/itamuria/LRErdd_dataset/blob/master/Grants.RData?raw=true")
     fitx <- data.frame(get(fitx))
     
+    file_to_read_excel <- NULL
+    file_to_read_rdata <- NULL
     
     file_to_read_excel <- input$excelfile
     print(file_to_read_excel)
@@ -75,7 +77,10 @@ server <- function(input, output, session) {
       }
     }
     
+    
+    
     fitx <- all_binom2num(fitx)
+    fitx
   })
   
   
@@ -416,57 +421,29 @@ server <- function(input, output, session) {
       # save.image("20171212_mit.RData")
       
       fmin <- min(forcingvar2,na.rm = TRUE)
-      # print((fmin))
       print(paste0("fmin: ", fmin))
       fmax <- max(forcingvar2,na.rm = TRUE)
-      # print((fmax))
       print(paste0("fmax: ", fmax))
       
       maxmax <- ifelse(fmin > fmax, fmin, fmax)
       bbw <- (ver2 - ver1)/2
-      
-      # print(head(bek))
+
       print("bek")
       print(head(bek))
       
       whichunder <- ifelse(input$onezero2=="under1",1,0)
       
       lencov <- length(input$var_covar)
-      # print(lencov)
       print(paste0("fmax: ", fmax))
-      # bek <- contreat()
       
       set.seed(27)
       
       if(lencov == 1)
       {
         df <- data.frame(matrix(888,1,5))
-        names(df) <- c("Covariate","Initial Pvalue","Initial Adj pvalue","Bandwidth specific Pvalue","Bandwidth specific Adj pvalue")
+        names(df) <- c("Covariate","Initial p-value","Initial Adjusted p-value","Bandwidth Specific p-value","Bandwidth Specific Adjusted p-value")
         
-        
-        # rand_pajd(dataset = dataset, forcing_var_name = forcing_var_name, covariates = covariates, 
-        #           niter = niter, bandwidth = bandwidth[h], cut_value = cut_value, whichunder = whichunder)
-        
-        # print(dim(data3))
-        print(paste0("data3: ", data3))
-        # print(input$var_forcing7)
-        print(paste0("input$var_forcing7: ", input$var_forcing7))
-        # print(input$var_covar)
-        print(paste0("input$var_covar: ", input$var_covar))
-        # print(input$nsim)
-        print(paste0("input$nsim: ", input$nsim))
-        # print(input$cutvalue2)
-        print(paste0("input$cutvalue2: ", input$cutvalue2))
-        # print(whichunder)
-        print(paste0("whichunder: ", whichunder))
-        # print(ver1)
-        print(paste0("ver1: ", ver1))
-        # print(ver2)
-        print(paste0("ver2: ", ver2))
-        # print(bbw)
-        print(paste0("bbw: ", bbw))
-        
-        
+
         if(dim(data2)==dim(data3))
         {
           get <- LRErdd::rand_pajd (dataset = data3, forcing_var_name = input$var_forcing7, covariate = input$var_covar, niter = input$nsim,
@@ -754,6 +731,13 @@ server <- function(input, output, session) {
     taula_post()
   })
   
+  
+  v_bostak<- reactiveValues(doPlot = FALSE)
+
+  observeEvent(input$go_bostak, {
+    v_bostak$doPlot <- input$go_bostak
+  })
+
   # method button
   v_sharp_fep <- reactiveValues(doPlot = FALSE)
   observeEvent(input$go_sharp_fep, {
@@ -778,39 +762,12 @@ server <- function(input, output, session) {
 
 #  Taula ------------------------------------------------------------------
 
-  taula_post <- reactive({
-    
-    if (!(v_sharp_fep$doPlot == TRUE | v_sharp_neyman$doPlot == TRUE | v_fuzzy_fep$doPlot == TRUE | v_fuzzy_neyman$doPlot == TRUE) ) return()
-    # browser()
-    isolate({
-      
-      tau3 <- taula()
-      # cin3 <- as.numeric(as.character(input$cin))
-      
-      withProgress(message = 'Making analyses', value = 0, {
-        
-        if(input$select_effect == 'Sharp FEP')
-        {
-          
-          tau3 <- tau3$df
-          
-        }
-
-        if(input$select_effect == 'Fuzzy FEP')
-        {
-          # browser()
-          tau3 <- tau3[[1]]
-        }
-      })
-    })
-    print(tau3)
-    
-  })
+  
   
   taula <- reactive({
     
-    if (!(v_sharp_fep$doPlot == TRUE | v_sharp_neyman$doPlot == TRUE | v_fuzzy_fep$doPlot == TRUE | v_fuzzy_neyman$doPlot == TRUE) ) return()
-    # browser()
+    if (v_sharp_fep$doPlot == TRUE & v_sharp_neyman$doPlot == TRUE & v_fuzzy_fep$doPlot == TRUE & v_fuzzy_neyman$doPlot == TRUE ) return()
+    # if (v_bostak$doPlot == FALSE) return()
     isolate({
       
       data2 <- data.frame(inFile_ds())
@@ -821,7 +778,7 @@ server <- function(input, output, session) {
       cin3 <- 100-(cin2*100)
       # cin3 <- as.numeric(as.character(input$cin))
       
-      withProgress(message = 'Making analyses', value = 0, {
+      withProgress(message = 'Making general analyses', value = 0.5, {
         
         if(input$select_effect == 'Sharp FEP')
         {
@@ -846,149 +803,181 @@ server <- function(input, output, session) {
         if(input$select_effect == 'Fuzzy FEP')
         {
           
-          incProgress(1/2, detail = "Be patient")
+
+# hasi --------------------------------------------------------------------
+
           
-          if(input$typemod=="binary")
-          {
-            if(input$one2side=="onesided")
-            {
-              
-              s0 <- input$cutvalue2
-              if (whichunder2 == 1) {
-                assigVar2 <- ifelse(data2[, input$var_forcing7] <= s0, 1, 0)
-              } else if (whichunder2 == 0) {
-                assigVar2 <- ifelse(data2[, input$var_forcing7] <= s0, 0, 1)
-              }
-              
-              dat2b <- data2[,input$var_covarW]
-              
-              # condition Z=0, W=0
-              data2[,input$var_covarW] <- ifelse(assigVar2 == 0, 0, data2[,input$var_covarW])
-              
-              
-              forcing_var_name =input$var_forcing7
-              Y_name =input$var_covarY
-              niter=input$niter
-              W = input$var_covarW
-              typemod = "binary"
-              typesided = "onesided"
-              bandwidth = bw3
-              cut_value = input$cutvalue2
-              M2 = input$M2
-              whichunder = whichunder2
-              
-              print(forcing_var_name)
-              print(Y_name)
-              print(niter)
-              print(W)
-              print(typemod)
-              print(typesided)
-              print(bandwidth)
-              print(cut_value)
-              print(M2)
-              print(whichunder)
-              
-              print(table(data2[,forcing_var_name],data2[,input$var_covarY]))
-              print(table(data2[,forcing_var_name],data2[,input$var_covarW]))
-              
-              # browser()
-              
-              taula <- LRErdd::fuzzy_fep_bw (dataset = data2,forcing_var_name =input$var_forcing7,Y_name =input$var_covarY,niter=input$niter,
-                                             W = input$var_covarW,typemod = "binary",typesided = "onesided",
-                                             bandwidth = bw3, cut_value = input$cutvalue2, M2 = input$M2, whichunder = whichunder2)
-              
-            } else if(input$one2side=="twosided")
-            {
-              taula <- LRErdd::fuzzy_fep_bw (dataset = data2,forcing_var_name =input$var_forcing7,Y_name =input$var_covarY,niter=input$niter,
-                                             W = input$var_covarW,typemod = "binary",typesided = "twosided",
-                                             bandwidth = bw3, cut_value = input$cutvalue2, M2 = input$M2, whichunder = whichunder2)
-            }
-            
-            
-          } else if(input$typemod=="cont")
+          if(input$one2side=="onesided")
           {
             
-            if(input$one2side=="onesided")
-            {
-              
-              s0 <- input$cutvalue2
-              if (whichunder2 == 1) {
-                assigVar2 <- ifelse(data2[, input$var_forcing7] <= s0, 1, 0)
-              } else if (whichunder2 == 0) {
-                assigVar2 <- ifelse(data2[, input$var_forcing7] <= s0, 0, 1)
-              }
-              
-              dat2b <- data2[,input$var_covarW]
-              data2[,input$var_covarW] <- ifelse(assigVar2 == 0, 0, data2[,input$var_covarW])
-              
-              taula <- LRErdd::fuzzy_fep_bw (dataset = data2,forcing_var_name =input$var_forcing7,Y_name =input$var_covarY,niter=input$niter,
-                                             W = input$var_covarW,typemod = "numeric",typesided = "onesided",
-                                             bandwidth = bw3, cut_value = input$cutvalue2, M2 = input$M2, whichunder = whichunder2)
-              
-            } else if(input$one2side=="twosided")
-            {
-              taula <- LRErdd::fuzzy_fep_bw (dataset = data2,forcing_var_name =input$var_forcing7,Y_name =input$var_covarY,niter=input$niter,
-                                             W = input$var_covarW,typemod = "numeric",typesided = "twosided",
-                                             bandwidth = bw3, cut_value = input$cutvalue2, M2 = input$M2, whichunder = whichunder2)
+            s0 <- input$cutvalue2
+            if (whichunder2 == 1) {
+              assigVar2 <- ifelse(data2[, input$var_forcing7] <= s0, 1, 0)
+            } else if (whichunder2 == 0) {
+              assigVar2 <- ifelse(data2[, input$var_forcing7] <= s0, 0, 1)
             }
+            
+            data2[,input$var_covarW] <- ifelse(assigVar2 == 0, 0, data2[,input$var_covarW])
           }
-          taula <- taula
-        }
+          
+          Y_name <- input$var_covarY
+          W_name <- input$var_covarW
+          M2 = input$M2
+          
+          data2$W <- data2[, W_name]
+          data2$Y <- data2[, Y_name]
+          bandwidth <- bw3
+          len_bw <- length(bandwidth)
+          cut_value <- input$cutvalue2
+          s0 <- cut_value
+          
+          whichunder <- whichunder2
+          
+          if (whichunder == 1) {
+            data2$assigVar <- ifelse(data2[, input$var_forcing7] <= 
+                                         cut_value, 1, 0)
+          }
+          else if (whichunder == 0) {
+            data2$assigVar <- ifelse(data2[, input$var_forcing7] <= 
+                                         cut_value, 0, 1)
+          }
+          data2$Z <- data2$assigVar
+          Sh <- data2[, input$var_forcing7]
+          pbalioak <- c()
+          nak <- c()
+          df2 <- data.frame(matrix(888, 1, 4))
+          names(df2) <- c("Bandwidth", "Statistic: IV estimate of CACE", 
+                          "Statistic: MLE of CACE", "Statistic: Posterior median of CACE")
+          dfvec <- data.frame(matrix(888, 1, 3))
+          names(dfvec) <- c("CACE.IV", "CACE.MLE", "CACE.PM")
+          dfp <- 0
+
+          
+          withProgress(message = 'Looping bandwidths', value = 0, {
+            # Number of times we'll go through the loop
+            n <- len_bw
+          
+          
+          for (b in 1:len_bw) {
+            
+            incProgress(1/n, detail = paste("Loop", b))
+            
+            h <- bandwidth[b]/2
+            dat_bw <- data2[Sh >= s0 - h & Sh <= s0 + h, ]
+            N <- dim(dat_bw)[1]
+            print(N)
+            zg <- dat_bw[, "assigVar"]
+            yg <- dat_bw[, Y_name]
+            wg <- dat_bw[, W_name]
+            if (input$typemod == "binary") {
+              if (input$one2side == "onesided") {
+                fu <- fuzzy_fep1sided(dat_bw, Y = yg, W = wg, 
+                                      Z = zg, Y_name = Y_name, M2 = M2)
+                ft <- c(bandwidth[b], fu[[1]])
+              }
+              else if (input$one2side == "twosided") {
+                fu <- fuzzy_fep2sided(dat_bw, Y = yg, W = wg, 
+                                      Z = zg, Y_name = Y_name, M2 = M2)
+                ft <- c(bandwidth[b], fu[[1]])
+              }
+            }
+            else if (input$typemod == "numeric") {
+              if (input$one2side == "onesided") {
+                fu <- fuzzy_fep_numeric1sided(dat_bw, Y = yg, 
+                                              W = wg, Z = zg, Y_name = Y_name, M2 = M2)
+                ft <- c(bandwidth[b], fu[[1]])
+              }
+              else if (input$one2side == "twosided") {
+                fu <- fuzzy_fep_numeric2sided(dat_bw, Y = yg, 
+                                              W = wg, Z = zg, Y_name = Y_name, M2 = M2)
+                ft <- c(bandwidth[b], fu[[1]])
+              }
+            }
+            df2 <- rbind(df2, ft)
+            dfvec <- rbind(dfvec, fu[[2]])
+            dfp <- rbind(dfp, fu[[3]])
+          }
+          df2 <- df2[-1, ]
+          dfvec <- dfvec[-1, ]
+          dfp <- dfp[-1, ]
+          taula <- list(df2, dfvec, dfp)
+
+           })
+          }
+        })
       })
-    })
     print(taula)
+    })
+
+  
+  taula_post <- reactive({
+    
+    if (v_sharp_fep$doPlot == TRUE & v_sharp_neyman$doPlot == TRUE & v_fuzzy_fep$doPlot == TRUE & v_fuzzy_neyman$doPlot == TRUE ) return()
+    # if (v_bostak$doPlot == FALSE) return()
+    isolate({
+      
+      tau3 <- taula()
+      # cin3 <- as.numeric(as.character(input$cin))
+      
+      # withProgress(message = 'Making analyses', value = 0, {
+        
+        if(input$select_effect == 'Sharp FEP')
+        {
+          
+          tau3 <- tau3$df
+          
+        }
+        
+        if(input$select_effect == 'Fuzzy FEP')
+        {
+          # browser()
+          tau3 <- tau3[[1]]
+        }
+      # })
+    })
+    print(tau3)
     
   })
-  
-  # vplot <- reactiveValues(doPlot = FALSE)
-  # observeEvent(input$go, {
-  #   vplot$doPlot <- input$go
-  # })
-  
-  
 
 # Plot --------------------------------------------------------------------
 
   
   output$plotres <- renderPlot({
     
-    if (!(v_sharp_fep$doPlot == TRUE | v_sharp_neyman$doPlot == TRUE | v_fuzzy_fep$doPlot == TRUE | v_fuzzy_neyman$doPlot == TRUE) ) return()
-    
+    if (v_sharp_fep$doPlot == TRUE & v_sharp_neyman$doPlot == TRUE & v_fuzzy_fep$doPlot == TRUE & v_fuzzy_neyman$doPlot == TRUE ) return()
+    # if (v_bostak$doPlot == FALSE) return()
     isolate({
       
       tt <- taula()
       # browser()
       print(head(tt))
-      # browser()
+      # 
       
       if(input$select_effect%in%c("Sharp Neyman","Fuzzy Neyman"))
       {
         names(tt)[c(3,5,6)] <- c("ACE","L","U")
-        
+        # browser()
+        tt <- tt[order(tt$Bandwidth),]
+        tt$Bandwidth <- as.factor(tt$Bandwidth)
         if(input$select_effect%in%c("Sharp Neyman"))
         {
+         
           ggplot(tt, aes(x = Bandwidth, y = ACE)) +
             geom_point(size = 4) +
-            geom_errorbar(data = tt, aes(x = Bandwidth, ymax = U, ymin = L), width = 0.5, size =1) + geom_hline(yintercept = 0,col= "red")
+            geom_errorbar(data = tt, aes(x = Bandwidth, ymax = U, ymin = L), width = 0, size = 1) + geom_hline(yintercept = 0,col= "red")
           
         } else if(input$select_effect%in%c("Fuzzy Neyman"))
         {
           ggplot(tt, aes(x = Bandwidth, y = ACE)) +
             geom_point(size = 4) +
-            geom_errorbar(data = tt, aes(x = Bandwidth, ymax = U, ymin = L),width=0.5, size =1) + facet_grid(.~Estimand)+ geom_hline(yintercept = 0,col= "red")
+            geom_errorbar(data = tt, aes(x = Bandwidth, ymax = U, ymin = L),width = 0, size = 1) + facet_grid(.~Estimand, scales = "free") + geom_hline(yintercept = 0,col= "red")
         }
         
       } else  if(input$select_effect%in%c("Sharp FEP","Fuzzy FEP"))
       {
-        
+        # browser()
         if(input$select_effect%in%c("Sharp FEP"))
         {
-          # names(tt)[c(1,3,5)] <- c("Bandwidth","Dif","Pvalue")
-          # kol <- ifelse(tt[,"Pvalue"]<0.05,"blue","red")
-          # ggplot(tt, aes(x = Bandwidth, y = Dif)) +
-          #   geom_point(size = 4,col=kol) +
-          #   geom_hline(yintercept = 0,col= "red")
-          
           l3 <- length(tt$hist_data)
           l4 <- length(tt$hist_data[[1]])
           ve <- 0
@@ -1009,50 +998,106 @@ server <- function(input, output, session) {
           dfg <- data.frame(ge,ve,obs)
           dfg$ge <- as.numeric(as.character(dfg$ge))
           dfg <- dfg[order(dfg$ge),]
+          # dfg$ge <- paste0("Bandwidth",dfg$ge)
           # browser()
+          print(levels(dfg$ge))
+          
           ggplot(dfg, aes(x=ve))+
-            geom_histogram(color="black", fill="white")+
-            facet_grid(. ~ ge) + geom_vline(aes(xintercept=obs, color="red"),linetype="dashed")
+            geom_histogram(color="black", fill="white") + xlab("Fisher test") + 
+            facet_grid(. ~ ge) + geom_vline(aes(xintercept=obs, color="red"),linetype="dashed") + theme(legend.position="none")
           
         } else if(input$select_effect%in%c("Fuzzy FEP"))
         {
           
-          l3 <- length(tt[[2]][,1])/3 # number of sim
-          l4 <- length(tt[[1]][,1]) #number of bandwidth
-          ve <- 0
-          ge <- "k"
-          obs <- 0
-          izen <- "K"
-          # izen2 <- "k"
-          
-          ve <- c(ve,tt[[2]][,1],tt[[2]][,2],tt[[2]][,3]) # simulated data
-          
-          for(h in 1:l4)
+          bnd <- as.numeric(as.character(tt[[1]][,1]))
+          if(length(unique(bnd))==1)
           {
+            
+            l3 <- length(tt[[2]][,1])*3 # number of sim
+            l4 <- length(tt[[1]][,1]) #number of bandwidth
+            ve <- 0
+            ge <- "k"
+            obs <- 0
+            izen <- "K"
+            # izen2 <- "k"
+            
+            ve <- c(ve,tt[[2]][,1],tt[[2]][,2],tt[[2]][,3]) # simulated data
+            
+            # for(h in 1:l4)
+            # {
             # for(t in 1:l3)
             # {
+            h <- 1
+            ge <- c(ge,rep(tt[[1]][h,1],l3*3))  # bandwidth
+            izen <- c(izen,rep("CACE.IV",l3),rep("CACE.MLE",l3),rep("CACE.PM",l3)) # test
+            # izen2 <- c(izen2,rep("CACE.IV",l3),rep("CACE.MLE",l3),rep("CACE.PM",l3))
+            obs <- c(obs,rep(tt[[3]][1],l3), rep(tt[[3]][2],l3), rep(tt[[3]][3],l3))
+            #   # }
+            #   
+            # }
+            ve <- ve[-1]
+            ge <- ge[-1]
+            obs <- obs[-1]
+            izen <- izen[-1]
+            
+            
+            
+            dfg <- data.frame(ge,ve,obs,izen)
+            
+            dfg$ge <- bnd
+            dfg <- dfg[order(dfg$ge),]
+            # dfg$ge <- factor(dfg$ge)
+            # dfg$ge2 <- paste0("Bandwidth",as.character(dfg$ge))
+            
+            ggplot(dfg, aes(x=ve))+
+              geom_histogram(color="black", fill="white") + xlab("Simulated values") + 
+              facet_grid(izen ~ .) + geom_vline(aes(xintercept=obs, color="red"),linetype="dashed") + theme(legend.position="none")
+            
+          } else if(length(unique(bnd)) > 1)
+          {
+            
+            l3 <- length(tt[[2]][,1])*3 # number of sim
+            l4 <- length(tt[[1]][,1]) #number of bandwidth
+            ve <- 0
+            ge <- "k"
+            obs <- 0
+            izen <- "K"
+            # izen2 <- "k"
+            
+            ve <- c(ve,tt[[2]][,1],tt[[2]][,2],tt[[2]][,3]) # simulated data
+            
+            for(h in 1:l4)
+            {
+              # for(t in 1:l3)
+              # {
               
               ge <- c(ge,rep(tt[[1]][h,1],l3*3))  # bandwidth
               izen <- c(izen,rep("CACE.IV",l3),rep("CACE.MLE",l3),rep("CACE.PM",l3)) # test
               # izen2 <- c(izen2,rep("CACE.IV",l3),rep("CACE.MLE",l3),rep("CACE.PM",l3))
               obs <- c(obs,rep(tt[[3]][h,1],l3), rep(tt[[3]][h,2],l3), rep(tt[[3]][h,3],l3))
-            # }
-           
+              # }
+              
+            }
+            ve <- ve[-1]
+            ge <- ge[-1]
+            obs <- obs[-1]
+            izen <- izen[-1]
+            
+            
+            
+            dfg <- data.frame(ge,ve,obs,izen)
+            bnd <- as.numeric(as.character(dfg$ge))
+            dfg$ge <- bnd
+            dfg <- dfg[order(dfg$ge),]
+            # dfg$ge <- factor(dfg$ge)
+            # dfg$ge2 <- paste0("Bandwidth",as.character(dfg$ge))
+            
+            ggplot(dfg, aes(x=ve))+
+              geom_histogram(color="black", fill="white") + xlab("Simulated values") + 
+              facet_grid(izen ~ ge) + geom_vline(aes(xintercept=obs, color="red"),linetype="dashed") + theme(legend.position="none")
           }
-          ve <- ve[-1]
-          ge <- ge[-1]
-          obs <- obs[-1]
-          izen <- izen[-1]
           
-          # browser()
           
-          dfg <- data.frame(ge,ve,obs,izen)
-          dfg$ge <- as.numeric(as.character(dfg$ge))
-          dfg <- dfg[order(dfg$ge),]
-
-          ggplot(dfg, aes(x=ve))+
-            geom_histogram(color="black", fill="white")+
-            facet_grid(izen ~ ge) + geom_vline(aes(xintercept=obs, color="red"),linetype="dashed")
         }
       }
       
