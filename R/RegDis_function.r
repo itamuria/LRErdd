@@ -383,7 +383,9 @@ sharp_neyman <- function(Y, Z, cin) {
     Vneyman
     
     ### 95% Confidence interval
-    cig <- 1 - (100 - cin)/2/100
+    cig <- 1 - cin/2
+    
+    # zz<- qnorm(0.975)
     zz <- qnorm(cig)
     tau - zz * sqrt(Vneyman)
     tau + zz * sqrt(Vneyman)
