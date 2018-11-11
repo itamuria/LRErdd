@@ -835,30 +835,28 @@ fuzzy_fep_numeric1sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
 fuzzy_fep_numeric2sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
     
     G <- NULL
-    G[Zh == 0 & Wh == 1] <- 2
-    G[Zh == 1 & Wh == 0] <- 1
+    G[Z == 0 & W == 1] <- 2
+    G[Z == 1 & W == 0] <- 1
     
     
-    pnt <- sum(Zh == 1 & Wh == 0)/sum(Zh == 1)
-    pat <- sum(Zh == 0 & Wh == 1)/sum(Zh == 0)
+    pnt <- sum(Z == 1 & W == 0)/sum(Z == 1)
+    pat <- sum(Z == 0 & W == 1)/sum(Z == 0)
     pc <- 1 - pnt - pat
     
-    u <- rbinom(sum(Zh == 0 & Wh == 0), 1, pc/{
+    u <- rbinom(sum(Z == 0 & W == 0), 1, pc/{
         pc + pnt
     })
-    G[(Zh == 0 & Wh == 0)] <- 3 * (u == 1) + 1 * (u == 0)
-    u <- rbinom(sum(Zh == 1 & Wh == 1), 1, pc/{
-        pc + pat
-    })
-    G[(Zh == 1 & Wh == 1)] <- 3 * (u == 1) + 2 * (u == 0)
+    G[(Z == 0 & W == 0)] <- 3 * (u == 1) + 1 * (u == 0)
+    u <- rbinom(sum(Z == 1 & W == 1), 1, (pc/pc + pat))
+    G[(Z == 1 & W == 1)] <- 3 * (u == 1) + 2 * (u == 0)
     
     Yh <- NULL
-    Yh[Zh == 0 & G == 3] <- rnorm(sum(Zh == 0 & G == 3), 40, 9)
-    Yh[Zh == 1 & G == 3] <- rnorm(sum(Zh == 1 & G == 3), 60, 4)
+    Yh[Z == 0 & G == 3] <- rnorm(sum(Z == 0 & G == 3), 40, 9)
+    Yh[Z == 1 & G == 3] <- rnorm(sum(Z == 1 & G == 3), 60, 4)
     Yh[G == 1] <- rnorm(sum(G == 1), 50, 12)
     Yh[G == 2] <- rnorm(sum(G == 2), 45, 8)
     rm(G, u, pc, pat, pnt)
-    dath <- data.frame(Z = Zh, W = Wh, Y = Yh)
+    dath <- data.frame(Z = Z, W = W, Y = Yh)
     Nh <- nrow(dath)
     
     # Nh<- nrow(dataset) IV-ESTIMATOR
@@ -868,7 +866,7 @@ fuzzy_fep_numeric2sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
     CACE.IV.obs
     
     ## MLE
-    names(dataset)[which(names(dataset) == Y_name)] <- "Y"
+    names(dataset)[Wich(names(dataset) == Y_name)] <- "Y"
     CACE.MLE.obs <- EM.gauss2(dat = dataset)
     
     # Posterior Mean
@@ -889,15 +887,15 @@ fuzzy_fep_numeric2sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
     
     for (i in 1:M) {
         ## Draw a random hypothetical assignment
-        Zh.sim <- sample(dath$Z, Nh, replace = TRUE)
+        Z.sim <- sample(dath$Z, Nh, replace = TRUE)
         
-        Wh.sim <- 0 * {
-            (1 - Zh.sim) * (G[i, ] == 1 | G[i, ] == 3) + Zh.sim * (G[i, ] == 1)
+        W.sim <- 0 * {
+            (1 - Z.sim) * (G[i, ] == 1 | G[i, ] == 3) + Z.sim * (G[i, ] == 1)
         } + 1 * {
-            (1 - Zh.sim) * (G[i, ] == 2) + Zh.sim * (G[i, ] == 2 | G[i, ] == 3)
+            (1 - Z.sim) * (G[i, ] == 2) + Z.sim * (G[i, ] == 2 | G[i, ] == 3)
         }
         ## Re-observe the data
-        dath.sim <- data.frame(Z = Zh.sim, W = Wh.sim, Y = Y0 * (1 - Zh.sim) + Y1 * Zh.sim)
+        dath.sim <- data.frame(Z = Z.sim, W = W.sim, Y = Y0 * (1 - Z.sim) + Y1 * Z.sim)
         
         ## Calculate the test statistic on these data
         ITT.Y <- mean(dath.sim$Y[dath.sim$Z == 1]) - mean(dath.sim$Y[dath.sim$Z == 0])
