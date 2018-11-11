@@ -866,7 +866,7 @@ fuzzy_fep_numeric2sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
     CACE.IV.obs
     
     ## MLE
-    names(dataset)[Wich(names(dataset) == Y_name)] <- "Y"
+    names(dataset)[which(names(dataset) == Y_name)] <- "Y"
     CACE.MLE.obs <- EM.gauss2(dat = dataset)
     
     # Posterior Mean
