@@ -171,31 +171,31 @@ mcmc.bin2 <- function(n.iter, n.burn, dat) {
         G <- da.bin2(theta, dat)
         theta$pi <- rdirichlet(1, {
             theta.prior$a + c(sum(G == 1), sum(G == 2), sum(G == 3))
-        })
+        ))
         
         theta$py.nt <- rbeta(1, {
             theta.prior$ay.nt[1] + sum(G == 1 & dat$Y == 1)
-        }, {
+        ), {
             theta.prior$ay.nt[2] + sum(G == 1 & dat$Y == 0)
-        })
+        ))
         
         theta$py.at <- rbeta(1, {
             theta.prior$ay.at[1] + sum(G == 2 & dat$Y == 1)
-        }, {
+        ), {
             theta.prior$ay.at[2] + sum(G == 2 & dat$Y == 0)
-        })
+        ))
         
         theta$py.c0 <- rbeta(1, {
             theta.prior$ay.c0[1] + sum(G == 3 & dat$Z == 0 & dat$Y == 1)
-        }, {
+        ), {
             theta.prior$ay.c0[2] + sum(G == 3 & dat$Z == 0 & dat$Y == 0)
-        })
+        ))
         
         theta$py.c1 <- rbeta(1, {
             theta.prior$ay.c1[1] + sum(G == 3 & dat$Z == 1 & dat$Y == 1)
-        }, {
+        ), {
             theta.prior$ay.c1[2] + sum(G == 3 & dat$Z == 1 & dat$Y == 0)
-        })
+        ))
         
         if (j > n.burn) {
             jj <- j - n.burn
@@ -474,19 +474,19 @@ mcmc.gauss2 <- function(n.iter, n.burn, dat) {
     for (j in 1:n.iter) {
         
         G <- da.gauss2(theta, dat)
-        theta$pi <- rdirichlet(1, c({
+        theta$pi <- rdirichlet(1, c((
             theta.prior$a[1] + sum(G == 1)
-        }, {
+        }, (
             theta.prior$a[2] + sum(G == 2)
-        }, {
+        }, (
             theta.prior$a[3] + sum(G == 3)
         }))
         
         n.nt <- sum(G == 1)
         s2.nt <- var(dat$Y[G == 1])
-        theta$sigma2.nt <- {
+        theta$sigma2.nt <- (
             (n.nt - 1) * s2.nt
-        }/rchisq(1, df = {
+        }/rchisq(1, df = (
             n.nt - 1
         })
         theta$mu.nt <- rnorm(1, mean = mean(dat$Y[G == 1]), sd = sqrt(theta$sigma2.nt/n.nt))
@@ -494,9 +494,9 @@ mcmc.gauss2 <- function(n.iter, n.burn, dat) {
         
         n.at <- sum(G == 2)
         s2.at <- var(dat$Y[G == 2])
-        theta$sigma2.at <- {
+        theta$sigma2.at <- (
             (n.at - 1) * s2.at
-        }/rchisq(1, df = {
+        }/rchisq(1, df = (
             n.at - 1
         })
         theta$mu.at <- rnorm(1, mean = mean(dat$Y[G == 2]), sd = sqrt(theta$sigma2.at/n.at))
@@ -504,9 +504,9 @@ mcmc.gauss2 <- function(n.iter, n.burn, dat) {
         
         n.c0 <- sum(G == 3 & dat$Z == 0)
         s2.c0 <- var(dat$Y[G == 3 & dat$Z == 0])
-        theta$sigma2.c0 <- {
+        theta$sigma2.c0 <- (
             (n.c0 - 1) * s2.c0
-        }/rchisq(1, df = {
+        }/rchisq(1, df = (
             n.c0 - 1
         })
         theta$mu.c0 <- rnorm(1, mean = mean(dat$Y[G == 3 & dat$Z == 0]), sd = sqrt(theta$sigma2.c0/n.c0))
@@ -514,9 +514,9 @@ mcmc.gauss2 <- function(n.iter, n.burn, dat) {
         
         n.c1 <- sum(G == 3 & dat$Z == 1)
         s2.c1 <- var(dat$Y[G == 3 & dat$Z == 1])
-        theta$sigma2.c1 <- {
+        theta$sigma2.c1 <- (
             (n.c1 - 1) * s2.c1
-        }/rchisq(1, df = {
+        }/rchisq(1, df = (
             n.c1 - 1
         })
         theta$mu.c1 <- rnorm(1, mean = mean(dat$Y[G == 3 & dat$Z == 1]), sd = sqrt(theta$sigma2.c1/n.c1))
