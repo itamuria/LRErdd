@@ -172,15 +172,24 @@ mcmc.bin2 <- function(n.iter, n.burn, dat) {
     
     for (j in 1:n.iter) {
         G <- da.bin2(theta, dat)
-        theta$pi <- rdirichlet(1, (theta.prior$a + c(sum(G == 1), sum(G == 2), sum(G == 3) ) ) )
+        thetapriora <- theta.prior$a + c(sum(G == 1), sum(G == 2), sum(G == 3) ) 
+        theta$pi <- rdirichlet(1, thetapriora )
         
-        theta$py.nt <- rbeta(1, (theta.prior$ay.nt[1] + sum(G == 1 & dat$Y == 1)), (theta.prior$ay.nt[2] + sum(G == 1 & dat$Y == 0) ))
+        thetaprioraynt1 <- (theta.prior$ay.nt[1] + sum(G == 1 & dat$Y == 1))
+        thetaprioraynt2 <- (theta.prior$ay.nt[2] + sum(G == 1 & dat$Y == 0) )
+        theta$py.nt <- rbeta(1, thetaprioraynt1, thetaprioraynt2)
         
-        theta$py.at <- rbeta(1, (theta.prior$ay.at[1] + sum(G == 2 & dat$Y == 1)), (theta.prior$ay.at[2] + sum(G == 2 & dat$Y == 0) ))
+        thetapyat1 <- (theta.prior$ay.at[1] + sum(G == 2 & dat$Y == 1))
+        thetapyat2 <-   (theta.prior$ay.at[2] + sum(G == 2 & dat$Y == 0) )
+        theta$py.at <- rbeta(1, thetapyat1, thetapyat2)
         
-        theta$py.c0 <- rbeta(1, (theta.prior$ay.c0[1] + sum(G == 3 & dat$Z == 0 & dat$Y == 1)), (theta.prior$ay.c0[2] + sum(G == 3 & dat$Z == 0 & dat$Y == 0) ))
+        thetapyc01 <- (theta.prior$ay.c0[1] + sum(G == 3 & dat$Z == 0 & dat$Y == 1))
+        thetapyc02 <- (theta.prior$ay.c0[2] + sum(G == 3 & dat$Z == 0 & dat$Y == 0) )
+        theta$py.c0 <- rbeta(1, thetapyc01, thetapyc02)
         
-        theta$py.c1 <- rbeta(1, (theta.prior$ay.c1[1] + sum(G == 3 & dat$Z == 1 & dat$Y == 1)), (theta.prior$ay.c1[2] + sum(G == 3 & dat$Z == 1 & dat$Y == 0) ))
+        thetapyc11 <- (theta.prior$ay.c1[1] + sum(G == 3 & dat$Z == 1 & dat$Y == 1))
+        thetapyc12 <- (theta.prior$ay.c1[2] + sum(G == 3 & dat$Z == 1 & dat$Y == 0) )
+        theta$py.c1 <- rbeta(1, thetapyc11, thetapyc12)
         
         if (j > n.burn) {
             jj <- j - n.burn
