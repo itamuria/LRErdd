@@ -159,8 +159,11 @@ mcmc.bin2 <- function(n.iter, n.burn, dat) {
     n.draws <- n.iter - n.burn
     theta.prior <- list(a = c(1, 1, 1), ay.nt = c(1, 1), ay.at = c(1, 1), ay.c0 = c(1, 1), ay.c1 = c(1, 1))
     
-    theta <- list(pi = rdirichlet(1, theta.prior$a), py.nt = rbeta(1, theta.prior$ay.nt[1], theta.prior$ay.nt[2]), py.at = rbeta(1, theta.prior$ay.at[1], theta.prior$ay.at[2]), 
-        py.c0 = rbeta(1, theta.prior$ay.c0[1], theta.prior$ay.c0[2]), py.c1 = rbeta(1, theta.prior$ay.c1[1], theta.prior$ay.c1[2]))
+    theta <- list(pi = rdirichlet(1, theta.prior$a), 
+                  py.nt = rbeta(1, theta.prior$ay.nt[1], theta.prior$ay.nt[2]), 
+                  py.at = rbeta(1, theta.prior$ay.at[1], theta.prior$ay.at[2]), 
+                  py.c0 = rbeta(1, theta.prior$ay.c0[1], theta.prior$ay.c0[2]), 
+                  py.c1 = rbeta(1, theta.prior$ay.c1[1], theta.prior$ay.c1[2]))
     
     THETA <- matrix(0, n.draws, length(unlist(theta)))
     colnames(THETA) <- c("pi.nt", "pi.at", "pi.c", "py.nt", "py.at", "py.c0", "py.c1")
@@ -169,33 +172,15 @@ mcmc.bin2 <- function(n.iter, n.burn, dat) {
     
     for (j in 1:n.iter) {
         G <- da.bin2(theta, dat)
-        theta$pi <- rdirichlet(1, {
-            theta.prior$a + c(sum(G == 1), sum(G == 2), sum(G == 3))
-        ))
+        theta$pi <- rdirichlet(1, (theta.prior$a + c(sum(G == 1), sum(G == 2), sum(G == 3) ) ) )
         
-        theta$py.nt <- rbeta(1, {
-            theta.prior$ay.nt[1] + sum(G == 1 & dat$Y == 1)
-        ), {
-            theta.prior$ay.nt[2] + sum(G == 1 & dat$Y == 0)
-        ))
+        theta$py.nt <- rbeta(1, (theta.prior$ay.nt[1] + sum(G == 1 & dat$Y == 1)), (theta.prior$ay.nt[2] + sum(G == 1 & dat$Y == 0) ))
         
-        theta$py.at <- rbeta(1, {
-            theta.prior$ay.at[1] + sum(G == 2 & dat$Y == 1)
-        ), (
-            theta.prior$ay.at[2] + sum(G == 2 & dat$Y == 0)
-        ))
+        theta$py.at <- rbeta(1, (theta.prior$ay.at[1] + sum(G == 2 & dat$Y == 1)), (theta.prior$ay.at[2] + sum(G == 2 & dat$Y == 0) ))
         
-        theta$py.c0 <- rbeta(1, (
-            theta.prior$ay.c0[1] + sum(G == 3 & dat$Z == 0 & dat$Y == 1)
-        ), (
-            theta.prior$ay.c0[2] + sum(G == 3 & dat$Z == 0 & dat$Y == 0)
-        ))
+        theta$py.c0 <- rbeta(1, (theta.prior$ay.c0[1] + sum(G == 3 & dat$Z == 0 & dat$Y == 1)), (theta.prior$ay.c0[2] + sum(G == 3 & dat$Z == 0 & dat$Y == 0) ))
         
-        theta$py.c1 <- rbeta(1, (
-            theta.prior$ay.c1[1] + sum(G == 3 & dat$Z == 1 & dat$Y == 1)
-        ), (
-            theta.prior$ay.c1[2] + sum(G == 3 & dat$Z == 1 & dat$Y == 0)
-        ))
+        theta$py.c1 <- rbeta(1, (theta.prior$ay.c1[1] + sum(G == 3 & dat$Z == 1 & dat$Y == 1)), (theta.prior$ay.c1[2] + sum(G == 3 & dat$Z == 1 & dat$Y == 0) ))
         
         if (j > n.burn) {
             jj <- j - n.burn
