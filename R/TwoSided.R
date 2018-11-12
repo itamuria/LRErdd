@@ -596,41 +596,41 @@ mcmc.gauss.h02 <- function(n.iter, n.burn, dat) {
     
     for (j in 1:n.iter) {
         G <- da.gauss.h02(theta, dat)
-        theta$pi.c <- rdirichlet(1, c({
+        theta$pi.c <- rdirichlet(1, c((
             theta.prior$a[1] + sum(G == 1)
-        }, {
+        ), (
             theta.prior$a[2] + sum(G == 2)
-        }, {
+        ), (
             theta.prior$a[3] + sum(G == 3)
-        }))
+        )))
         
         n.nt <- sum(G == 1)
         s2.nt <- var(dat$Y[G == 1])
-        theta$sigma2.nt <- {
+        theta$sigma2.nt <- (
             (n.nt - 1) * s2.nt
-        }/rchisq(1, df = {
+        )/rchisq(1, df = (
             n.nt - 1
-        })
+        ))
         theta$mu.nt <- rnorm(1, mean = mean(dat$Y[G == 1]), sd = sqrt(theta$sigma2.nt/n.nt))
         rm(n.nt, s2.nt)
         
         n.at <- sum(G == 2)
         s2.at <- var(dat$Y[G == 2])
-        theta$sigma2.at <- {
+        theta$sigma2.at <- (
             (n.at - 1) * s2.at
-        }/rchisq(1, df = {
+        )/rchisq(1, df = (
             n.at - 1
-        })
+        ))
         theta$mu.at <- rnorm(1, mean = mean(dat$Y[G == 2]), sd = sqrt(theta$sigma2.at/n.at))
         rm(n.at, s2.at)
         
         n.c <- sum(G == 1)
         s2.c <- var(dat$Y[G == 3])
-        theta$sigma2.c <- {
+        theta$sigma2.c <- (
             (n.c - 1) * s2.c
-        }/rchisq(1, df = {
+        )/rchisq(1, df = (
             n.c - 1
-        })
+        ))
         theta$mu.c <- rnorm(1, mean = mean(dat$Y[G == 3]), sd = sqrt(theta$sigma2.c/n.c))
         rm(n.c, s2.c)
         
