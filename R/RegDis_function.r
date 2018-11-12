@@ -843,9 +843,7 @@ fuzzy_fep_numeric2sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
     pat <- sum(Z == 0 & W == 1)/sum(Z == 0)
     pc <- 1 - pnt - pat
     
-    u <- rbinom(sum(Z == 0 & W == 0), 1, pc/{
-        pc + pnt
-    })
+    u <- rbinom(sum(Z == 0 & W == 0), 1, pc/(pc + pnt))
     G[(Z == 0 & W == 0)] <- 3 * (u == 1) + 1 * (u == 0)
     u <- rbinom(sum(Z == 1 & W == 1), 1, (pc/pc + pat))
     G[(Z == 1 & W == 1)] <- 3 * (u == 1) + 2 * (u == 0)
