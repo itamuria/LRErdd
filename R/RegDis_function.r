@@ -899,8 +899,8 @@ fuzzy_fep_numeric2sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
         ITT.Y <- mean(dath.sim$Y[dath.sim$Z == 1]) - mean(dath.sim$Y[dath.sim$Z == 0])
         ITT.W <- mean(dath.sim$W[dath.sim$Z == 1]) - mean(dath.sim$W[dath.sim$Z == 0])
         CACE.IV.sim <- ITT.Y/ITT.W
-        CACE.MLE.sim <- EM.gauss(dat = dath.sim)
-        CACE.PM.sim <- mcmc.gauss(n.iter = 1000, n.burn = 500, dat = dath.sim)
+        CACE.MLE.sim <- EM.gauss2(dat = dath.sim)
+        CACE.PM.sim <- mcmc.gauss2(n.iter = 1000, n.burn = 500, dat = dath.sim)
         
         Tsim[i, ] <- c(CACE.IV.sim, CACE.MLE.sim, CACE.PM.sim)
         
