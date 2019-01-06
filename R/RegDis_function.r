@@ -608,10 +608,7 @@ fuzzy_neyman_bw <- function(dataset = data, forcing_var_name = "S", Y_name = "dr
 #' @return data frame with variable and value and bandwidth
 #' @export
 #'
-fuzzy_fep1sided <- function(dataset, Yg, Wg, Zg, Y_name, M2 = 10) {
-    Y <- Yg
-    Z <- Zg
-    W <- Wg
+fuzzy_fep1sided <- function(dataset, Y, W, Z, Y_name, M2 = 10) {
     
     Nh <- nrow(dataset)
     ## IV-ESTIMATOR
