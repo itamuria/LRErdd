@@ -568,7 +568,7 @@ mcmc.gauss.h02 <- function(n.iter, n.burn, dat) {
     n.draws <- n.iter - n.burn
     theta.prior <- list(a = c(1, 1, 1))
     
-    theta <- list(pi = rdirichlet(1, c(1, 1, 1)), mu.nt = mean(dat$Y) + rnorm(1, 0, 1), sigma2.nt = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.at = mean(dat$Y) + 
+    theta <- list(pi.c = rdirichlet(1, c(1, 1, 1)), mu.nt = mean(dat$Y) + rnorm(1, 0, 1), sigma2.nt = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.at = mean(dat$Y) + 
         rnorm(1, 0, 1), sigma2.at = runif(1, var(dat$Y)/2, 2 * var(dat$Y)), mu.c = mean(dat$Y) + rnorm(1, 0, 1), sigma2.c = runif(1, var(dat$Y)/2, 2 * var(dat$Y)))
     THETA <- matrix(0, n.draws, length(unlist(theta)))
     colnames(THETA) <- c("pi.nt", "pi.at", "pi.c", "mu.nt", "sigma2.nt", "mu.at", "sigma2.at", "mu.c", "sigma2.c")
